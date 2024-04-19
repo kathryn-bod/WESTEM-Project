@@ -18,15 +18,6 @@ def connect_to_database():
         database='westem'
     )
 
-# Function to generate an employee ID
-def employee_id(cursor):
-    cursor.execute("SELECT employer_id FROM employee ORDER BY employer_id DESC LIMIT 1")
-    last_id = cursor.fetchone()
-    if last_id:
-        return 'E' + str(int(last_id[0][1:]) + 1)
-    else:
-        return 'E1000'
-
 def validate_password(password):
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
