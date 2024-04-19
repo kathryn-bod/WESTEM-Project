@@ -1,154 +1,196 @@
+from server.helper.id_generator import employee_id
 import mysql.connector
 import datetime
-import random
-import string
+import re
+import bcrypt
 
 
-
-from server.helper.id_generator import employee_id
+# Global variables to track user and employee login status
+logged_in_user = None
+logged_in_employee = None
 
 # Function to establish database connection
 def connect_to_database():
     return mysql.connector.connect(
         host='localhost',
-        password='pass123',
         user='root',
-        database="westem"
+        password='pass123',
+        database='westem'
     )
+
+def validate_password(password):
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long."
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter."
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain at least one lowercase letter."
+    if not re.search(r'[0-9]', password):
+        return False, "Password must contain at least one digit."
+    if not re.search(r'[\@\#\$\%\&\*\!\?]', password):
+        return False, "Password must contain at least one special character (@, #, $, %, &, *, !, ?)."
+    return True, "Password is valid."
 
 # Function to handle user registration
 def register_user(cursor, con):
-    print("\nPlease provide the following details to create an account:")
+    global logged_in_user
+    print("Please provide the following details to create an account:")
     username = input("Username: ")
-    # Check if the username already exists
     cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
     if cursor.fetchone():
         print("Username already exists. Please choose a different one.")
         return
-    address = input("Address: ")
-    career_status = input("Career Status: ")
-
-    # Handle Date of Birth input with error handling
     while True:
-        dob = input("Date of Birth (YYYY-MM-DD): ")
-        try:
-            # Attempt to convert the input string to a date
-            dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
-            break  # Break out of the loop if conversion is successful
-        except ValueError:
-            print("Invalid date format. Please enter the date in YYYY-MM-DD format.")
-
-    password = input("Password: ")
+        password = input("Password (8 chars, upper, lower, digit, special): ")
+        valid, message = validate_password(password)
+        if valid:
+            break
+        else:
+            print(message)
     first_name = input("First Name: ")
     last_name = input("Last Name: ")
     email = input("Email: ")
     phone_number = input("Phone Number: ")
+    address = input("Address: ")
+    dob = input("Date of Birth (YYYY-MM-DD): ")
 
-    # Insert user details into the database
-    insert_query = "INSERT INTO users (username, address, career_status, dob, password, first_name, last_name, email, phone_number) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    cursor.execute(insert_query, (username, address, career_status, dob, password, first_name, last_name, email, phone_number))
+    # Hash password before saving to database
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    cursor.execute("INSERT INTO users (username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (username, hashed_password, first_name, last_name, email, phone_number, address, dob))
     con.commit()
-    print("Account created successfully!")
+    print("User registered successfully!")
+    logged_in_user = username
 
-# Function to handle user login
+
+# Function to handle employee registration
+def register_employee(cursor, con):
+    global logged_in_employee
+    print("Please provide the following details to create an employee account:")
+    emp_id = employee_id(cursor)
+    while True:
+        password = input("Password (8 chars, upper, lower, digit, special): ")
+        valid, message = validate_password(password)
+        if valid:
+            break
+        else:
+            print(message)
+    first_name = input("First Name: ")
+    last_name = input("Last Name: ")
+    email = input("Email: ")
+    phone_number = input("Phone Number: ")
+    address = input("Address: ")
+    dob = input("Date of Birth (YYYY-MM-DD): ")
+
+    # Hash password before saving to database
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    cursor.execute("INSERT INTO employee (employer_id, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, hashed_password, first_name, last_name, email, phone_number, address, dob))
+    con.commit()
+    print("Employee registered successfully! Your Employee ID is:", emp_id)
+    logged_in_employee = emp_id
+
+
+# Login functions for users and employees
 def login_user(cursor):
-    print("\nPlease enter your credentials to log in:")
+    global logged_in_user
     username = input("Username: ")
     password = input("Password: ")
-    cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
-    user = cursor.fetchone()
-    if user:
-        print(f"Welcome back, {user[5]}!")
+    cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
+    result = cursor.fetchone()
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
+        print(f"Welcome back, {username}!")
+        logged_in_user = username
     else:
-        print("Invalid username or password. Please try again.")
+        print("Invalid credentials.")
 
 
-def register_employee(cursor, con):
-    print("\nPlease provide the following details to create an employee account:")
-    password = input("Password: ")
-    email = input("Email: ")
-    first_name = input("First Name: ")
-    last_name = input("Last Name: ")
-    
-    # Handle Date of Birth input with error handling
-    while True:
-        dob = input("Date of Birth (YYYY-MM-DD): ")
-        try:
-            # Attempt to convert the input string to a date
-            dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
-            break  # Break out of the loop if conversion is successful
-        except ValueError:
-            print("Invalid date format. Please enter the date of birth in YYYY-MM-DD format.")
-
-    address = input("Address: ")
-    phone_number = input("Phone Number: ")
-    experience = input("Experience: ")
-
-    # Generate a unique employee ID
-    emp_id = employee_id(cursor)
-
-    # Insert employee details into the database
-    insert_query = "INSERT INTO employee (employer_id, password, email, first_name, last_name, dob, address, phone_number, experience) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    cursor.execute(insert_query, (emp_id, password, email, first_name, last_name, dob, address, phone_number, experience))
-    con.commit()
-    print("Employee account created successfully! Your Employee ID is:", emp_id)
-
-# Function to handle employee login
 def login_employee(cursor):
-    print("\nPlease enter your credentials to log in:")
+    global logged_in_employee
     employee_id = input("Employee ID: ")
     password = input("Password: ")
-    cursor.execute("SELECT * FROM employee WHERE employer_id = %s AND password = %s", (employee_id, password))
-    employee = cursor.fetchone()
-    if employee:
-        print(f"Welcome back, {employee[3]}!")
+    cursor.execute("SELECT password FROM employee WHERE employer_id = %s", (employee_id,))
+    result = cursor.fetchone()
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
+        print(f"Welcome back, Employee {employee_id}!")
+        logged_in_employee = employee_id
     else:
-        print("Invalid Employee ID or password. Please try again.")
+        print("Invalid credentials.")
 
-# Function to handle employee sign-in
-def employee_sign_in(cursor, con):
+
+# Logout functions for users and employees
+def logout_user():
+    global logged_in_user
+    print(f"Goodbye, {logged_in_user}!")
+    logged_in_user = None
+
+def logout_employee():
+    global logged_in_employee
+    print(f"Goodbye, Employee {logged_in_employee}!")
+    logged_in_employee = None
+
+# Information menu
+def informational_menu():
     while True:
-        print("\nEmployee Sign In\n")
-        print("1. Sign In")
-        print("2. Create an Account")
-        print("3. Back")
+        print("\nInformation Menu")
+        print("1. About Us")
+        print("2. Policies")
+        print("3. Stories About the Website")
+        print("4. Back")
+        choice = input("Enter your choice: ")
+        if choice == '4':
+            break
+        elif choice == '1':
+            print("About Us: We are dedicated to providing the best service.")
+        elif choice == '2':
+            print("Policies: Here are our user and privacy policies.")
+        elif choice == '3':
+            print("Stories: Read about our community's experiences.")
+        else:
+            print("Invalid choice. Please try again.")
 
+# Main menu that handles different states based on login
+def main_menu(cursor, con):
+    while True:
+        print("\nMain Menu")
+        if logged_in_user or logged_in_employee:
+            print("1. Log Out")
+            print("2. Sign Up/Sign In for Resources")
+        else:
+            print("1. User Log In")
+            print("2. Employee Log In")
+            print("3. Register User")
+            print("4. Register Employee")
+        print("5. Information")
+        print("6. Exit")
         choice = input("Enter your choice: ")
 
-        if choice == '1':
+        if choice == '1' and (logged_in_user or logged_in_employee):
+            if logged_in_user:
+                logout_user()
+            else:
+                logout_employee()
+        elif choice == '1':
+            login_user(cursor)
+        elif choice == '2' and not (logged_in_user or logged_in_employee):
             login_employee(cursor)
-        elif choice == '2':
+        elif choice == '3' and not logged_in_employee:
+            register_user(cursor, con)
+        elif choice == '4' and not logged_in_employee:
             register_employee(cursor, con)
-        elif choice == '3':
+        elif choice == '2' and (logged_in_user or logged_in_employee):
+            print("Resource sign-up/sign-in functionality to be implemented.")
+        elif choice == '5':
+            informational_menu()
+        elif choice == '6':
             break
         else:
             print("Invalid choice. Please try again.")
 
-# Main function
 def log_in_main():
     con = connect_to_database()
     cursor = con.cursor()
-
-    while True:
-        print("\nWelcome to the WESTEM!\n")
-        print("1. Create an Account")
-        print("2. Log In")
-        print("3. Employee Sign In")
-        print("4. Exit")
-
-        choice = input("Enter your choice: ")
-
-        if choice == '1':
-            register_user(cursor, con)
-        elif choice == '2':
-            login_user(cursor)
-        elif choice == '3':
-            employee_sign_in(cursor, con)
-        elif choice == '4':
-            break
-        else:
-            print("Invalid choice. Please try again.")
-
+    main_menu(cursor, con)
     cursor.close()
     con.close()
 
