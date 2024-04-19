@@ -2,6 +2,8 @@ from server.helper.id_generator import employee_id
 import mysql.connector
 import datetime
 import re
+import bcrypt
+
 
 # Global variables to track user and employee login status
 logged_in_user = None
@@ -60,10 +62,15 @@ def register_user(cursor, con):
     phone_number = input("Phone Number: ")
     address = input("Address: ")
     dob = input("Date of Birth (YYYY-MM-DD): ")
-    cursor.execute("INSERT INTO users (username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (username, password, first_name, last_name, email, phone_number, address, dob))
+
+    # Hash password before saving to database
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    cursor.execute("INSERT INTO users (username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (username, hashed_password, first_name, last_name, email, phone_number, address, dob))
     con.commit()
     print("User registered successfully!")
     logged_in_user = username
+
 
 # Function to handle employee registration
 def register_employee(cursor, con):
@@ -83,33 +90,42 @@ def register_employee(cursor, con):
     phone_number = input("Phone Number: ")
     address = input("Address: ")
     dob = input("Date of Birth (YYYY-MM-DD): ")
-    cursor.execute("INSERT INTO employee (employer_id, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, password, first_name, last_name, email, phone_number, address, dob))
+
+    # Hash password before saving to database
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    cursor.execute("INSERT INTO employee (employer_id, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, hashed_password, first_name, last_name, email, phone_number, address, dob))
     con.commit()
     print("Employee registered successfully! Your Employee ID is:", emp_id)
     logged_in_employee = emp_id
+
 
 # Login functions for users and employees
 def login_user(cursor):
     global logged_in_user
     username = input("Username: ")
     password = input("Password: ")
-    cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
-    if cursor.fetchone():
+    cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
+    result = cursor.fetchone()
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
         print(f"Welcome back, {username}!")
         logged_in_user = username
     else:
         print("Invalid credentials.")
 
+
 def login_employee(cursor):
     global logged_in_employee
     employee_id = input("Employee ID: ")
     password = input("Password: ")
-    cursor.execute("SELECT * FROM employee WHERE employer_id = %s AND password = %s", (employee_id, password))
-    if cursor.fetchone():
+    cursor.execute("SELECT password FROM employee WHERE employer_id = %s", (employee_id,))
+    result = cursor.fetchone()
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
         print(f"Welcome back, Employee {employee_id}!")
         logged_in_employee = employee_id
     else:
         print("Invalid credentials.")
+
 
 # Logout functions for users and employees
 def logout_user():
