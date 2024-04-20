@@ -144,10 +144,9 @@ def profile_options(username):
     while True:
         title = "Profile Options"
         option1 = "[1] View Profile"
-        option2 = "[2] Edit Profile"
-        option3 = "[3] See Documents"
-        option4 = "[4] Upload New Documents"
-        option5 = "[5] Back"
+        option3 = "[2] See Documents"
+        option4 = "[3] Upload New Documents"
+        option5 = "[4] Back"
         box_width = 100
 
         print("\033c\033[3J")
@@ -155,7 +154,6 @@ def profile_options(username):
         print("║" + title.center(box_width - 2) + "║")
         print("╠" + "═" * (box_width - 2) + "╣")
         print("║" + option1.center(box_width - 2) + "║")
-        print("║" + option2.center(box_width - 2) + "║")
         print("║" + option3.center(box_width - 2) + "║")
         print("║" + option4.center(box_width - 2) + "║")
         print("║" + option5.center(box_width - 2) + "║")
@@ -165,22 +163,18 @@ def profile_options(username):
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            view_profile(username)
-        elif choice == '2':
             edit_profile(username)
-        elif choice == '3':
+        elif choice == '2':
             see_documents(username)
-        elif choice == '4':
+        elif choice == '3':
             title = input("Enter document title: ")
             doc_type = input("Enter document type: ")
             filename = input("Enter filename: ")
             upload_document(username, title, doc_type, filename)
-        elif choice == '5':
+        elif choice == '4':
             return
         else:
             print("Invalid choice. Please try again.")
-
-
 
 
 
