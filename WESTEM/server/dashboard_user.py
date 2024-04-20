@@ -171,11 +171,15 @@ def profile_options(username):
         elif choice == '3':
             see_documents(username)
         elif choice == '4':
-            upload_document(username)
+            title = input("Enter document title: ")
+            doc_type = input("Enter document type: ")
+            filename = input("Enter filename: ")
+            upload_document(username, title, doc_type, filename)
         elif choice == '5':
             return
         else:
             print("Invalid choice. Please try again.")
+
 
 
 
