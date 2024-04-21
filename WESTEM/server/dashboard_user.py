@@ -1,9 +1,8 @@
 import mysql.connector
+import time
 from datetime import datetime
-import uuid  # Import the uuid module to generate unique IDs
+from datetime import datetime
 
-def generate_document_id():
-    return str(uuid.uuid4()) 
 
 def connect_to_database():
     return mysql.connector.connect(
@@ -12,6 +11,20 @@ def connect_to_database():
         user='root',
         database="westem"
     )
+
+
+counter = 0
+
+def generate_document_id():
+    global counter
+    # Get current timestamp
+    timestamp = int(time.time() * 1000)  # Convert to milliseconds
+    # Increment counter to ensure uniqueness
+    counter += 1
+    # Combine timestamp and counter to generate ID
+    # Limit the ID range to fit within the maximum value of INT
+    document_id = (timestamp % (2**31)) * 1000 + counter
+    return document_id
 
 
 def edit_profile(username):
@@ -76,15 +89,21 @@ def edit_profile(username):
         con.close()
     except mysql.connector.Error as err:
         print("Error:", err)
+
+
 def see_documents(username):
-    try:
+ 
         con = connect_to_database()
         cursor = con.cursor()
 
-        # SQL query to retrieve user's documents based on username
-        query = "SELECT * FROM documents WHERE user_id = %s"
-        print("Executing query:", query)  # Debugging output
+        # Retrieve user_id based on username
+        query = "SELECT username FROM users WHERE username = %s"
         cursor.execute(query, (username,))
+        user_id = cursor.fetchone()[0]
+
+        # SQL query to retrieve user's documents based on user_id
+        query = "SELECT * FROM documents WHERE user_id = %s"
+        cursor.execute(query, (user_id,))
         documents = cursor.fetchall()
 
         if documents:
@@ -100,54 +119,48 @@ def see_documents(username):
             print("No documents found.")
 
         con.close()
-    except mysql.connector.Error as err:
-        print("Error:", err)
 
-from datetime import datetime
+def upload_document(username, title, doc_type, filename, update_time=None):
 
-def upload_document(username, title, doc_type, filename, document_timestamp=None):
-    try:
         con = connect_to_database()
         cursor = con.cursor()
 
         # Retrieve user_id based on username
-        query = "SELECT user_id FROM users WHERE username = %s"
-        print("Executing query:", query)  # Debugging output
+        query = "SELECT username FROM users WHERE username = %s"
+        #print("Executing query:", query)  # Debugging output
         cursor.execute(query, (username,))
         user_id = cursor.fetchone()[0]
 
         # Generate a unique document ID
         document_id = generate_document_id()
-        print("Generated document ID:", document_id)  # Debugging output
+        #print("Generated document ID:", document_id)  # Debugging output
 
         # Use current timestamp if document timestamp is not provided
-        if document_timestamp is None:
-            document_timestamp = datetime.now()
+        if update_time is None:
+            update_time = datetime.now()
 
         # SQL query to upload new document
-        insert_query = "INSERT INTO documents (document_id, title, type, filename, update_time, user_id, document_timestamp) VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s)"
-        print("Executing query:", insert_query)  # Debugging output
-        document_data = (document_id, title, doc_type, filename, user_id, document_timestamp)
-        print("Data to insert:", document_data)  # Debugging output
+        insert_query = "INSERT INTO documents (document_id, title, type, filename, update_time, user_id) VALUES (%s, %s, %s, %s, %s, %s)"
+        #print("Executing query:", insert_query)  # Debugging output
+        document_data = (document_id, title, doc_type, filename, update_time, user_id)
+        #print("Data to insert:", document_data)  # Debugging output
         cursor.execute(insert_query, document_data)
         con.commit()  # Commit the transaction
 
         print("Document uploaded successfully.")
 
+
         con.close()
-    except mysql.connector.Error as err:
-        print("MySQL Error:", err)
-    except Exception as ex:
-        print("Error:", ex)
+  
 
 
 def profile_options(username):
     while True:
         title = "Profile Options"
         option1 = "[1] View Profile"
-        option3 = "[2] See Documents"
-        option4 = "[3] Upload New Documents"
-        option5 = "[4] Back"
+        option2 = "[2] See Documents"
+        option3 = "[3] Upload New Documents"
+        option4 = "[4] Back"
         box_width = 100
 
         print("\033c\033[3J")
@@ -155,9 +168,9 @@ def profile_options(username):
         print("║" + title.center(box_width - 2) + "║")
         print("╠" + "═" * (box_width - 2) + "╣")
         print("║" + option1.center(box_width - 2) + "║")
+        print("║" + option2.center(box_width - 2) + "║")
         print("║" + option3.center(box_width - 2) + "║")
         print("║" + option4.center(box_width - 2) + "║")
-        print("║" + option5.center(box_width - 2) + "║")
         print("╚" + "═" * (box_width - 2) + "╝")
         print()
 
@@ -167,17 +180,54 @@ def profile_options(username):
             edit_profile(username)
         elif choice == '2':
             see_documents(username)
+            input("Press Enter to return to the menu...")
         elif choice == '3':
             title = input("Enter document title: ")
             doc_type = input("Enter document type: ")
             filename = input("Enter filename: ")
             upload_document(username, title, doc_type, filename)
+            input("Press Enter to return to the menu...")
         elif choice == '4':
             return
         else:
             print("Invalid choice. Please try again.")
 
 
+
+
+    try:
+        con = connect_to_database()
+        cursor = con.cursor()
+
+        # Retrieve user_id based on username
+        query = "SELECT username FROM users WHERE username = %s"
+        print("Executing query:", query)  # Debugging output
+        cursor.execute(query, (username,))
+        user_id = cursor.fetchone()[0]
+
+        # Generate a unique document ID
+        document_id = generate_document_id()
+        print("Generated document ID:", document_id)  # Debugging output
+
+        # Use current timestamp if document timestamp is not provided
+        if update_time is None:
+            update_time = datetime.now()
+
+        # SQL query to upload new document
+        insert_query = "INSERT INTO documents (document_id, title, type, filename, update_time, user_id) VALUES (%s, %s, %s, %s, %s, %s)"
+        print("Executing query:", insert_query)  # Debugging output
+        document_data = (document_id, title, doc_type, filename, update_time, user_id)
+        print("Data to insert:", document_data)  # Debugging output
+        cursor.execute(insert_query, document_data)
+        con.commit()  # Commit the transaction
+
+        print("Document uploaded successfully.")
+
+    except mysql.connector.Error as err:
+        print("Error:", err)
+
+    finally:
+        con.close()
 
 def user_menu(username):
     while True:
@@ -209,6 +259,9 @@ def user_menu(username):
         elif user_choice.lower() == "l":
             print("\033c\033[3J")
             return -1
+        elif user_choice == '2':  # Add this condition to call see_documents
+            print("\033c\033[3J")
+            see_documents(username)  # Call see_documents function
         else:
             print("Invalid input.")
             return True
