@@ -73,6 +73,7 @@ def register_employee(cursor, con):
     print("Please provide the following details to create an employee account:")
     emp_id = employee_id(cursor)
     while True:
+        username = input("Username: ")
         password = input("Password (8 chars, upper, lower, digit, special): ")
         valid, message = validate_password(password)
         if valid:
@@ -89,11 +90,10 @@ def register_employee(cursor, con):
     # Hash password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    cursor.execute("INSERT INTO employee (employer_id, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, hashed_password, first_name, last_name, email, phone_number, address, dob))
+    cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob))
     con.commit()
     print("Employee registered successfully! Your Employee ID is:", emp_id)
     logged_in_employee = emp_id
-
 
 # Login functions for users and employees
 def login_user(cursor):
@@ -110,12 +110,13 @@ def login_user(cursor):
 
 
 def login_employee(cursor):
-    global logged_in_employee
-    employee_id = input("Employee ID: ")
+    #global logged_in_employee
+    username = input("Username: ")
     password = input("Password: ")
-    cursor.execute("SELECT password FROM employee WHERE employer_id = %s", (employee_id,))
+    cursor.execute("SELECT employer_id, password FROM employee WHERE username = %s", (username,))
     result = cursor.fetchone()
-    if result and bcrypt.checkpw(password.encode('utf-8'), result[0].encode('utf-8')):
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[1].encode('utf-8')):
+        employee_id = result[0]
         print(f"Welcome back, Employee {employee_id}!")
         logged_in_employee = employee_id
     else:
