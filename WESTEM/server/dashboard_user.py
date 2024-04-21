@@ -1,8 +1,8 @@
 import mysql.connector
 import time
 from datetime import datetime
-from datetime import datetime
-
+import random
+from sqlalchemy import desc
 
 def connect_to_database():
     return mysql.connector.connect(
@@ -154,6 +154,124 @@ def upload_document(username, title, doc_type, filename, update_time=None):
   
 
 
+def project_id(cursor):
+    while True:
+        project_id = random.randint(10000000, 99999999) 
+        cursor.execute("SELECT * FROM projects WHERE project_id = %s", (project_id,))
+        if not cursor.fetchone():  
+            return project_id
+
+def project_interest(username):
+        title = "Project Interest Form"
+        desc="Please enter the following details to register your proposed project"
+        box_width = 100
+        print("╔" + "═" * (box_width - 2) + "╗")
+        print("║" + title.center(box_width - 2) + "║")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        print("║" + desc.center(box_width - 2) + "║")
+        print("╚" + "═" * (box_width - 2) + "╝")
+        print()
+        
+      
+        con = connect_to_database()
+        cursor = con.cursor()
+        budget=float(input("Budget: "))
+        proj_type=input("Type (Topic and whether it is Full Stack, ML, Data Science, etc. Be as specific as possible.): ")
+        proj_name=input("Project Title: ")
+        user_id=username
+        pid = project_id(cursor)
+        print("Generated project ID:", pid) 
+
+        cursor.execute("INSERT INTO projects (project_id, budget, type, name, user_id) VALUES (%s, %s, %s, %s, %s)",
+                           (pid, budget, proj_type, proj_name, user_id))
+        con.commit()
+        print("Your project was registered sucessfully and is awaiting review.")
+        con.close()
+        return
+
+
+
+def mentorship_signup(username):
+    while True:
+        title = "Mentorship"
+        desc= """
+        Welcome to WESTEM's Mentorship Program! In this Program you have the chance to work with our 
+        brilliant Mentors who will guide you through your own personal project. This is a great chance 
+        to recieve advice and supervision to help you enter and succeed in the technological industry. 
+        Below you may fill out the Project Interest Form, and you will be paired with a mentor based off 
+        of your input."""
+        option1 = "[1] Project Interest Form"
+        option2 = "[2] Back"
+        box_width = 100
+
+        print("\033c\033[3J")
+        print("╔" + "═" * (box_width - 2) + "╗")
+        print("║" + title.center(box_width - 2) + "║")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        lines = desc.strip().split("\n")
+        for line in lines:
+            print("│" + line.strip().center(box_width - 2) + "│")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        print("║" + option1.center(box_width - 2) + "║")
+        print("║" + option2.center(box_width - 2) + "║")
+        print("╚" + "═" * (box_width - 2) + "╝")
+        print()
+
+        choice=input("Enter your choice: ")
+        if choice=='1':
+            project_interest(username)
+        elif choice=='2':
+            return
+        else:
+            print("Invalid choice. Please try again.")
+
+def view_workshops(username):
+    try:
+        con=connect_to_database()
+        cursor=con.cursor()
+
+        cursor.execute("SELECT * FROM WORKSHOPS")
+        wks=cursor.fetchall()
+
+        if not wks:
+            print("There are no scheduled workshops at this time.\n\n")
+        else:
+            title="Available Workshops"
+            print("\033c\033[3J")
+            box_width=100
+            print("╔" + "═" * (box_width - 2) + "╗")
+            print("║" + title.center(box_width - 2) + "║")
+            print("╠" + "═" * (box_width - 2) + "╣")
+            print()
+            for w in wks:
+                print("Resource ID:", wks[0])
+                print("Duration:", wks[1])
+        con.close()
+    except mysql.connector.Error as err:
+        print("Error:", err)
+
+def resume_menu(username):
+    while True:
+        title = "Resume Menu"
+        option1 = "[1] Submit Resume"
+        option2 = "[2] Apply for Resume Review"
+        box_width = 100
+
+        print("\033c\033[3J")
+        print("╔" + "═" * (box_width - 2) + "╗")
+        print("║" + title.center(box_width - 2) + "║")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        lines = desc.strip().split("\n")
+        for line in lines:
+            print("│" + line.strip().center(box_width - 2) + "│")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        print("║" + option1.center(box_width - 2) + "║")
+        print("║" + option2.center(box_width - 2) + "║")
+        print("╚" + "═" * (box_width - 2) + "╝")
+        print()  
+
+
+
 def profile_options(username):
     while True:
         title = "Profile Options"
@@ -251,11 +369,14 @@ def user_menu(username):
             print("\033c\033[3J")
             profile_options(username)
         elif user_choice.lower() == "m":
-            pass  # Placeholder for mentorship functionality
+            print("\033c\033[3J")
+            mentorship_signup(username)
         elif user_choice.lower() == "w":
-            pass  # Placeholder for workshops functionality
+            print("\033c\033[3J")
+            view_workshops(username)
         elif user_choice.lower() == "r":
-            pass  # Placeholder for resume functionality
+            print("\033c\033[3J")
+            resume_menu(username)
         elif user_choice.lower() == "l":
             print("\033c\033[3J")
             return -1

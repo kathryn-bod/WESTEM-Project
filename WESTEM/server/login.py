@@ -153,6 +153,7 @@ def informational_menu():
         else:
             print("Invalid choice. Please try again.")
 
+"""
 def indexing(cursor):
     try:
         cursor.execute("CREATE INDEX idx_emp_password ON employee(password)")
@@ -166,11 +167,11 @@ def indexing(cursor):
          cursor.execute("CREATE INDEX idx_emp_id on employee(employee_id)")
     except mysql.connector.Error as err:
         print("Error:", err)
-   
+""" 
 
 # Main menu that handles different states based on login
 def main_menu(cursor, con):
-    indexing(cursor)
+    #indexing(cursor)
     while True:
         print("\nMain Menu")
         if logged_in_user or logged_in_employee:
