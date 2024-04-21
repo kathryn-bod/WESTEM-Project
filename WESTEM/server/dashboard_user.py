@@ -313,40 +313,6 @@ def profile_options(username):
 
 
 
-    try:
-        con = connect_to_database()
-        cursor = con.cursor()
-
-        # Retrieve user_id based on username
-        query = "SELECT username FROM users WHERE username = %s"
-        print("Executing query:", query)  # Debugging output
-        cursor.execute(query, (username,))
-        user_id = cursor.fetchone()[0]
-
-        # Generate a unique document ID
-        document_id = generate_document_id()
-        print("Generated document ID:", document_id)  # Debugging output
-
-        # Use current timestamp if document timestamp is not provided
-        if update_time is None:
-            update_time = datetime.now()
-
-        # SQL query to upload new document
-        insert_query = "INSERT INTO documents (document_id, title, type, filename, update_time, user_id) VALUES (%s, %s, %s, %s, %s, %s)"
-        print("Executing query:", insert_query)  # Debugging output
-        document_data = (document_id, title, doc_type, filename, update_time, user_id)
-        print("Data to insert:", document_data)  # Debugging output
-        cursor.execute(insert_query, document_data)
-        con.commit()  # Commit the transaction
-
-        print("Document uploaded successfully.")
-
-    except mysql.connector.Error as err:
-        print("Error:", err)
-
-    finally:
-        con.close()
-
 def user_menu(username):
     while True:
         option = "[P] Profile"

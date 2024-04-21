@@ -6,6 +6,7 @@ import bcrypt
 
 
 from server.dashboard_user import user_dashboard
+from server.dashboard_employee import employee_dashboard
 
 
 # Global variables to track user and employee login status
@@ -204,6 +205,8 @@ def main_menu(cursor, con):
             print("Resource sign-up/sign-in functionality to be implemented.")
             if logged_in_user:
                 user_dashboard(logged_in_user)
+            if logged_in_employee:
+                employee_dashboard()
         elif choice == '5':
             informational_menu()
         elif choice == '6':
