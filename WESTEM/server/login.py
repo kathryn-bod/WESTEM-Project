@@ -6,7 +6,7 @@ import bcrypt
 
 
 from server.dashboard_user import user_dashboard
-from server.dashboard_employee import employee_dashboard
+from server.dashboard_employee import dashboard_employee
 
 
 # Global variables to track user and employee login status
@@ -206,7 +206,7 @@ def main_menu(cursor, con):
             if logged_in_user:
                 user_dashboard(logged_in_user)
             if logged_in_employee:
-                employee_dashboard()
+                dashboard_employee(logged_in_employee)
         elif choice == '5':
             informational_menu()
         elif choice == '6':
