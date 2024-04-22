@@ -267,8 +267,6 @@ def project_status(username):
         con = connect_to_database()
         cursor = con.cursor()
 
-        
-
         # Query the projects table to fetch the project ID based on the username
         query_fetch_project_id = "SELECT project_id FROM projects WHERE user_id = %s"
         cursor.execute(query_fetch_project_id, (username,))
@@ -411,43 +409,50 @@ def resource_id(cursor):
         if not cursor.fetchone():  
             return resource_id
         
-
 def apply_resume_review(usern, filen):
     print("Resume Review")
     con = connect_to_database()
     cursor = con.cursor()
 
-    # Fetch the resource_id from the resources table where the name is 'resume'
-    cursor.execute("SELECT resource_id FROM resources WHERE name = 'resume'")
+    cursor.execute("SELECT resource_id FROM resources WHERE name = 'resume review'")
     resume_resource = cursor.fetchone()
-    
+    cursor.fetchall()
+    con.close()
+
     if resume_resource:
         resource_id = resume_resource[0]
         print("Found resume resource with ID:", resource_id)
+        print("User ID:", usern)
+        print("File name:", filen)
 
-        # Fetch the document_id of the latest submitted resume by the user
+        con = connect_to_database()
+        cursor = con.cursor()
+
         cursor.execute("SELECT document_id FROM documents WHERE user_id = %s AND filename = %s ORDER BY update_time DESC LIMIT 1", (usern, filen))
-        doc_id = cursor.fetchone()
+        doc_id_result = cursor.fetchone()
 
-        if doc_id:
-            doc_id = doc_id[0]
-            print("Found document ID:", doc_id)
-
+        if doc_id_result:
+            doc_id = doc_id_result[0]
+            print("Found resume document with ID:", doc_id)
             # Insert into resource_application and resume_review tables
-            cursor.execute("INSERT INTO resource_application (user_id, resource_id, name) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
-            #cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
-            print("You are now registered for resume review.")
-            con.commit()
+            # cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
+            # cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+            # print("You are now registered for resume review.")
+            # con.commit()
         else:
-            print("You did not submit your resume for review.")
+            print("No resume document found.")
     else:
         print("No resume resource found.")
 
-    con.close()
+    # Make sure to fetch all results before closing the cursor
+    cursor.fetchall()
+    # con.close()
+
+
 
 
 def resume_menu(username):
-    filename = 'resume'
+    filename = "resume"
     while True:
         title = "Resume Menu"
         option1 = "[1] Submit Resume"
