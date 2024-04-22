@@ -255,7 +255,7 @@ def project_interest(username):
         con.commit()
         print("Your project was registered sucessfully and is awaiting review.")
 
-        assign_mentor_to_project(pid)
+        #assign_mentor_to_project(pid)
         
         con.close()
         return
