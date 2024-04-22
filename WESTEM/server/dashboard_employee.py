@@ -71,6 +71,13 @@ def workforWestem(user_in, employee_id):
                         resource_id = generate_unique_resource_id(cursor)
                         cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))
                         con.commit()
+                        print("Inserting into mentorship table:")
+                        insert_mentorship_query = "INSERT INTO mentorship (user_id, project_id, employee_id) VALUES (%s, %s, %s)"
+                        print("Insert Mentorship Query:", insert_mentorship_query)
+                        print("Values:", (project[4], project[0], employee_id))
+                        cursor.execute(insert_mentorship_query, (project[4], project[0], employee_id))
+                        con.commit()
+                        print("\033c\033[3J")
                         print("Mentorship application successful!")
                     else:
                         print("There are currently no projects that match that focus.\nWould you like to choose a different focus? (Y/N)\n")
@@ -111,8 +118,6 @@ def workforWestem(user_in, employee_id):
                             resource_id = generate_unique_resource_id(cursor)
                             cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))
                             con.commit()
-                            #cursor.execute("SELECT resource_id FROM resources WHERE employee_id = %s", (employee_id,))
-                            #ID =cursor.fetchone()
                             print("Inserting into workshops table:")
                             insert_workshop_query = "INSERT INTO workshops (resource_id, about, duration, workshop_name) VALUES (%s, %s, %s, %s)"
                             print("Insert Workshop Query:", insert_workshop_query)
@@ -144,9 +149,6 @@ def workforWestem(user_in, employee_id):
                     resource_id = generate_unique_resource_id(cursor)
                     cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))                    
                     con.commit()
-                    #cursor.execute("SELECT LAST_INSERT_ID()")
-                    #ID = cursor.fetchone()[0]
-                    #cursor.execute("INSERT INTO resume_review (resource_id, reviewer) VALUES (%s, %s)", (ID, reviewer))
                     print("Inserting into resume_review table:")
                     insert_review_query = "INSERT INTO resume_review (resource_id, reviewer) VALUES (%s, %s)"
                     print("Insert Review Query:", insert_review_query)
@@ -202,8 +204,10 @@ def employee_options(choice, employee_id):
             print()
             user_in = input("What would you like to do now?\nEnter your choice:")
             if user_in.lower() == "s":
+                print("\033c\033[3J")
                 workforWestem(user_in, employee_id)
             elif user_in.lower() == "l":
+                print("\033c\033[3J")
                 show_workshops()
                 input("Press Enter to return to the menu...")
             elif user_in.lower() == "b":
