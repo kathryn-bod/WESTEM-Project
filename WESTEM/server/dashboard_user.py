@@ -256,33 +256,42 @@ def project_interest(username):
         print("Your project was registered sucessfully and is awaiting review.")
 
 
-        assign_mentor_to_project(pid)
-        
+        #assign_mentor_to_project(pid)
+
         con.close()
         return
 
-def assign_mentor_to_project(project_id):
+
+def project_status(username):
     try:
         con = connect_to_database()
         cursor = con.cursor()
 
-        # Query resources table to find available mentors
-        query = "SELECT employee_id FROM resources"
-        cursor.execute(query)
-        mentors = cursor.fetchall()
+        
 
-        if mentors:
-            # Select a random mentor from the available list
-            mentor_id = random.choice(mentors)[0]
+        # Query the projects table to fetch the project ID based on the username
+        query_fetch_project_id = "SELECT project_id FROM projects WHERE user_id = %s"
+        cursor.execute(query_fetch_project_id, (username,))
+        project_id = cursor.fetchone()
 
-            # Update the project with the selected mentor
-            update_query = "UPDATE projects SET mentor_id = %s WHERE project_id = %s"
-            cursor.execute(update_query, (mentor_id, project_id))
-            con.commit()
+        #assign_mentor(project_id, username)
 
-            print("Mentor assigned to the project successfully.")
+        if project_id:
+            project_id = project_id[0]
+
+            # Query the mentorship table to check if a mentor is assigned to the project
+            query_check_mentorship = "SELECT r.name FROM mentorship m JOIN resources r ON m.employee_id = r.employee_id WHERE m.project_id = %s"
+            cursor.execute(query_check_mentorship, (project_id,))
+            mentor_data = cursor.fetchone()
+
+            if mentor_data:
+                mentor_name = mentor_data[0]
+                print("Project Status:")
+                print("Mentor assigned to the project:", mentor_name)
+            else:
+                print("No mentor assigned to the project.")
         else:
-            print("No mentors available for assignment.")
+            print("No project found for the provided username.")
 
         con.close()
     except mysql.connector.Error as err:
@@ -334,7 +343,8 @@ def mentorship_signup(username):
         of your input."""
         option1 = "[1] Project Interest Form"
         option2 = "[2] View Projects"
-        option3 = "[3] Back"
+        option3 = "[3] Check Status for Project"
+        option4 = "[3] Back"
         box_width = 100
 
         print("\033c\033[3J")
@@ -348,6 +358,7 @@ def mentorship_signup(username):
         print("║" + option1.center(box_width - 2) + "║")
         print("║" + option2.center(box_width - 2) + "║")
         print("║" + option3.center(box_width - 2) + "║")
+        print("║" + option4.center(box_width - 2) + "║")
         print("╚" + "═" * (box_width - 2) + "╝")
         print()
 
@@ -358,7 +369,11 @@ def mentorship_signup(username):
         elif choice=='2':
             view_proj(username)
             input("Press Enter to return to the menu...")
-        elif choice=='3':
+        elif choice == '3':
+            #assign_mentor(project_id, username)
+            project_status(username)
+            input("Press Enter to return to the menu...")
+        elif choice =='4':
             return
         else:
             print("Invalid choice. Please try again.")
@@ -399,32 +414,39 @@ def resource_id(cursor):
 
 def apply_resume_review(usern, filen):
     print("Resume Review")
-    con=connect_to_database()
-    cursor=con.cursor()
-    rid = resource_id(cursor)
-    print("Generated resume review ID:", rid) 
+    con = connect_to_database()
+    cursor = con.cursor()
 
-    #cursor.execute("SELECT document_id FROM documents WHERE username = %s", (username,))
-    cursor.execute("SELECT document_id FROM documents WHERE user_id = %s AND filename = %s ORDER BY update_time DESC LIMIT 1", (usern, filen))
-    doc_id = cursor.fetchone()[0]
+    # Fetch the resource_id from the resources table where the name is 'resume'
+    cursor.execute("SELECT resource_id FROM resources WHERE name = 'resume'")
+    resume_resource = cursor.fetchone()
+    
+    if resume_resource:
+        resource_id = resume_resource[0]
+        print("Found resume resource with ID:", resource_id)
 
-    if doc_id==None:
-        print("You did not submit your resume for review.")
-       
+        # Fetch the document_id of the latest submitted resume by the user
+        cursor.execute("SELECT document_id FROM documents WHERE user_id = %s AND filename = %s ORDER BY update_time DESC LIMIT 1", (usern, filen))
+        doc_id = cursor.fetchone()
+
+        if doc_id:
+            doc_id = doc_id[0]
+            print("Found document ID:", doc_id)
+
+            # Insert into resource_application and resume_review tables
+            cursor.execute("INSERT INTO resource_application (user_id, resource_id, name) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
+            #cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+            print("You are now registered for resume review.")
+            con.commit()
+        else:
+            print("You did not submit your resume for review.")
     else:
-        cursor.execute("INSERT INTO resource_application (user_id, resource_id, name) VALUES (%s, %s, %s)",
-                           (usern, rid, doc_id))
-        cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)",
-                           (rid,))
-        print("You are now registered for resume review.")
-    con.commit()
+        print("No resume resource found.")
+
     con.close()
 
-
-
-
 def resume_menu(username):
-    filename = "Resume"
+    filename = 'resume'
     while True:
         title = "Resume Menu"
         option1 = "[1] Submit Resume"
