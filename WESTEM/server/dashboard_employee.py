@@ -39,6 +39,28 @@ def show_workshops():
         cursor.close()
         con.close()
 
+def type_for_proj():
+        print("Select what type of project you would like to work on from the following list:")
+        print("[D] Data Science")
+        print("[W] Web Development")
+        print("[B] Backend")
+        print("[F] Frontend")
+        print("[FS] Full Stack")
+        type=input("Type: ")
+        if type in ["D", "d"]:
+            project_type= "Data Science"
+        elif type in ["W", "w"]:
+            project_type= "Web Development"
+        elif type in ["B", "b"]:
+            project_type= "Backend"
+        elif type in ["F", "f"]:
+            project_type="Frontend"
+        elif type in ["FS", "fS", "Fs", "fs"]:
+            project_type= "Full Stack"
+        else:
+           print("Invalid Project Type. You Must Select From the List Above.")
+        return project_type
+
 
 def workforWestem(user_in, employee_id):
     con = connect_to_database()
@@ -57,7 +79,7 @@ def workforWestem(user_in, employee_id):
                 print("║" + mentorTxt.center(box_width - 2) + "║")
                 print("╚" + "═" * (box_width - 2) + "╝")
                 print()
-                what_in = input("Choose one of the following project focuses to be a mentor for:\n1 - data\n2 - web design\n3 - backend\n4 - theory\n")
+                what_in = type_for_proj()
                 if what_in.lower() == 'c':
                     print("\033c\033[3J")
                     return -1
