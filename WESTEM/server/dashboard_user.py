@@ -4,6 +4,7 @@ from datetime import datetime
 import random
 from sqlalchemy import desc
 
+
 def connect_to_database():
     return mysql.connector.connect(
         host='localhost',
@@ -12,8 +13,7 @@ def connect_to_database():
         database="westem"
     )
 
-
-counter = 0
+counter=0
 
 def generate_document_id():
     global counter
@@ -117,8 +117,8 @@ def see_documents(username):
                 print()
         else:
             print("No documents found.")
-
         con.close()
+
 
 def upload_document(username, title, doc_type, filename, update_time=None):
 
@@ -151,126 +151,6 @@ def upload_document(username, title, doc_type, filename, update_time=None):
 
 
         con.close()
-  
-
-
-def project_id(cursor):
-    while True:
-        project_id = random.randint(10000000, 99999999) 
-        cursor.execute("SELECT * FROM projects WHERE project_id = %s", (project_id,))
-        if not cursor.fetchone():  
-            return project_id
-
-def project_interest(username):
-        title = "Project Interest Form"
-        desc="Please enter the following details to register your proposed project"
-        box_width = 100
-        print("╔" + "═" * (box_width - 2) + "╗")
-        print("║" + title.center(box_width - 2) + "║")
-        print("╠" + "═" * (box_width - 2) + "╣")
-        print("║" + desc.center(box_width - 2) + "║")
-        print("╚" + "═" * (box_width - 2) + "╝")
-        print()
-        
-      
-        con = connect_to_database()
-        cursor = con.cursor()
-        budget=float(input("Budget: "))
-        proj_type=input("Type (Topic and whether it is Full Stack, ML, Data Science, etc. Be as specific as possible.): ")
-        proj_name=input("Project Title: ")
-        user_id=username
-        pid = project_id(cursor)
-        print("Generated project ID:", pid) 
-
-        cursor.execute("INSERT INTO projects (project_id, budget, type, name, user_id) VALUES (%s, %s, %s, %s, %s)",
-                           (pid, budget, proj_type, proj_name, user_id))
-        con.commit()
-        print("Your project was registered sucessfully and is awaiting review.")
-        con.close()
-        return
-
-
-
-def mentorship_signup(username):
-    while True:
-        title = "Mentorship"
-        desc= """
-        Welcome to WESTEM's Mentorship Program! In this Program you have the chance to work with our 
-        brilliant Mentors who will guide you through your own personal project. This is a great chance 
-        to recieve advice and supervision to help you enter and succeed in the technological industry. 
-        Below you may fill out the Project Interest Form, and you will be paired with a mentor based off 
-        of your input."""
-        option1 = "[1] Project Interest Form"
-        option2 = "[2] Back"
-        box_width = 100
-
-        print("\033c\033[3J")
-        print("╔" + "═" * (box_width - 2) + "╗")
-        print("║" + title.center(box_width - 2) + "║")
-        print("╠" + "═" * (box_width - 2) + "╣")
-        lines = desc.strip().split("\n")
-        for line in lines:
-            print("│" + line.strip().center(box_width - 2) + "│")
-        print("╠" + "═" * (box_width - 2) + "╣")
-        print("║" + option1.center(box_width - 2) + "║")
-        print("║" + option2.center(box_width - 2) + "║")
-        print("╚" + "═" * (box_width - 2) + "╝")
-        print()
-
-        choice=input("Enter your choice: ")
-        if choice=='1':
-            project_interest(username)
-        elif choice=='2':
-            return
-        else:
-            print("Invalid choice. Please try again.")
-
-def view_workshops(username):
-    try:
-        con=connect_to_database()
-        cursor=con.cursor()
-
-        cursor.execute("SELECT * FROM WORKSHOPS")
-        wks=cursor.fetchall()
-
-        if not wks:
-            print("There are no scheduled workshops at this time.\n\n")
-        else:
-            title="Available Workshops"
-            print("\033c\033[3J")
-            box_width=100
-            print("╔" + "═" * (box_width - 2) + "╗")
-            print("║" + title.center(box_width - 2) + "║")
-            print("╠" + "═" * (box_width - 2) + "╣")
-            print()
-            for w in wks:
-                print("Resource ID:", wks[0])
-                print("Duration:", wks[1])
-        con.close()
-    except mysql.connector.Error as err:
-        print("Error:", err)
-
-def resume_menu(username):
-    while True:
-        title = "Resume Menu"
-        option1 = "[1] Submit Resume"
-        option2 = "[2] Apply for Resume Review"
-        box_width = 100
-
-        print("\033c\033[3J")
-        print("╔" + "═" * (box_width - 2) + "╗")
-        print("║" + title.center(box_width - 2) + "║")
-        print("╠" + "═" * (box_width - 2) + "╣")
-        lines = desc.strip().split("\n")
-        for line in lines:
-            print("│" + line.strip().center(box_width - 2) + "│")
-        print("╠" + "═" * (box_width - 2) + "╣")
-        print("║" + option1.center(box_width - 2) + "║")
-        print("║" + option2.center(box_width - 2) + "║")
-        print("╚" + "═" * (box_width - 2) + "╝")
-        print()  
-
-
 
 def profile_options(username):
     while True:
@@ -313,13 +193,280 @@ def profile_options(username):
 
 
 
+
+def project_id(cursor):
+    while True:
+        project_id = random.randint(10000000, 99999999) 
+        cursor.execute("SELECT * FROM projects WHERE project_id = %s", (project_id,))
+        if not cursor.fetchone():  
+            return project_id
+def type_for_proj():
+        print("Select what type of project you would like to work on from the following list:")
+        print("[D] Data Science")
+        print("[W] Web Development")
+        print("[B] Backend")
+        print("[F] Frontend")
+        print("[FS] Full Stack")
+        type=input("Type: ")
+        if type in ["D", "d"]:
+            project_type= "Data Science"
+        elif type in ["W", "w"]:
+            project_type= "Web Development"
+        elif type in ["B", "b"]:
+            project_type= "Backend"
+        elif type in ["F", "f"]:
+            project_type="Frontend"
+        elif type in ["FS", "fS", "Fs", "fs"]:
+            project_type= "Full Stack"
+        else:
+           print("Invalid Project Type. You Must Select From the List Above.")
+        return project_type
+
+def project_interest(username):
+        user_id=username
+        emp_id= 1
+        title = "Project Interest Form"
+        desc="Please enter the following details to register your proposed project"
+        box_width = 100
+        print("╔" + "═" * (box_width - 2) + "╗")
+        print("║" + title.center(box_width - 2) + "║")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        print("║" + desc.center(box_width - 2) + "║")
+        print("╚" + "═" * (box_width - 2) + "╝")
+        print()
+        
+      
+        con = connect_to_database()
+        cursor = con.cursor()
+        budget=float(input("Budget: "))
+        proj_type= type_for_proj()
+        proj_name=input("Project Title: ")
+        pid = project_id(cursor)
+        print("Generated project ID:", pid) 
+
+        cursor.execute("INSERT INTO projects (project_id, budget, type, name, user_id) VALUES (%s, %s, %s, %s, %s)",
+                           (pid, budget, proj_type, proj_name, user_id))
+        #cursor.execute("SELECT employee_id FROM 
+        #cursor.execute("SELECT project_id FROM projects WHERE user_id= %s", (username,))
+        #cursor.execute("SELECT project_id FROM projects WHERE user_id= %s", (username,))
+        #mentorship_pid= cursor.fetchone()[0]
+        #cursor.execute("INSERT INTO mentorship (user_id, project_id) VALUES (%s, %s)", (username, mentorship_pid))
+
+        con.commit()
+        print("Your project was registered sucessfully and is awaiting review.")
+
+
+        assign_mentor_to_project(pid)
+        
+        con.close()
+        return
+
+def assign_mentor_to_project(project_id):
+    try:
+        con = connect_to_database()
+        cursor = con.cursor()
+
+        # Query resources table to find available mentors
+        query = "SELECT employee_id FROM resources"
+        cursor.execute(query)
+        mentors = cursor.fetchall()
+
+        if mentors:
+            # Select a random mentor from the available list
+            mentor_id = random.choice(mentors)[0]
+
+            # Update the project with the selected mentor
+            update_query = "UPDATE projects SET mentor_id = %s WHERE project_id = %s"
+            cursor.execute(update_query, (mentor_id, project_id))
+            con.commit()
+
+            print("Mentor assigned to the project successfully.")
+        else:
+            print("No mentors available for assignment.")
+
+        con.close()
+    except mysql.connector.Error as err:
+        print("MySQL Error:", err)
+    except Exception as ex:
+        print("Error:", ex)
+
+
+def view_proj(username):
+     title = "Current Projects"
+     box_width = 100
+     print("╔" + "═" * (box_width - 2) + "╗")
+     print("║" + title.center(box_width - 2) + "║")
+     #print("╠" + "═" * (box_width - 2) + "╣")
+     print("╚" + "═" * (box_width - 2) + "╝")
+     try:
+        con = connect_to_database()
+        cursor = con.cursor()
+
+        # SQL query to retrieve current profile information
+        query = "SELECT * FROM projects WHERE user_id = %s"
+        cursor.execute(query, (username,))
+        curr_projects = cursor.fetchone()
+
+        if curr_projects:
+            for projects in curr_projects:
+                print("Current Profile Information:")
+                print("1. Project Title:", curr_projects[3])
+                print("2. Type:", curr_projects[2])
+                print("2. Budget:", curr_projects[1])
+                print("\n\n")
+        con.close()
+
+     except mysql.connector.Error as err:
+        print("MySQL Error:", err)
+     except Exception as ex:
+        print("Error:", ex)
+
+        
+
+def mentorship_signup(username):
+    while True:
+        title = "Mentorship"
+        desc= """
+        Welcome to WESTEM's Mentorship Program! In this Program you have the chance to work with our 
+        brilliant Mentors who will guide you through your own personal project. This is a great chance 
+        to recieve advice and supervision to help you enter and succeed in the technological industry. 
+        Below you may fill out the Project Interest Form, and you will be paired with a mentor based off 
+        of your input."""
+        option1 = "[1] Project Interest Form"
+        option2 = "[2] View Projects"
+        option3 = "[3] Back"
+        box_width = 100
+
+        print("\033c\033[3J")
+        print("╔" + "═" * (box_width - 2) + "╗")
+        print("║" + title.center(box_width - 2) + "║")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        lines = desc.strip().split("\n")
+        for line in lines:
+            print("│" + line.strip().center(box_width - 2) + "│")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        print("║" + option1.center(box_width - 2) + "║")
+        print("║" + option2.center(box_width - 2) + "║")
+        print("║" + option3.center(box_width - 2) + "║")
+        print("╚" + "═" * (box_width - 2) + "╝")
+        print()
+
+        choice=input("Enter your choice: ")
+        if choice=='1':
+            project_interest(username)
+            input("Press Enter to return to the menu...")
+        elif choice=='2':
+            view_proj(username)
+            input("Press Enter to return to the menu...")
+        elif choice=='3':
+            return
+        else:
+            print("Invalid choice. Please try again.")
+
+def view_workshops(username):
+    try:
+        con=connect_to_database()
+        cursor=con.cursor()
+
+        cursor.execute("SELECT * FROM WORKSHOPS")
+        wks=cursor.fetchall()
+
+        if not wks:
+            print("There are no scheduled workshops at this time.\n\n")
+        else:
+            title="Available Workshops"
+            print("\033c\033[3J")
+            box_width=100
+            print("╔" + "═" * (box_width - 2) + "╗")
+            print("║" + title.center(box_width - 2) + "║")
+            print("╠" + "═" * (box_width - 2) + "╣")
+            print()
+            for w in wks:
+                print("Resource ID:", wks[0])
+                print("Duration:", wks[1])
+        con.close()
+    except mysql.connector.Error as err:
+        print("Error:", err)
+
+
+def resource_id(cursor):
+    while True:
+        resource_id = random.randint(10000000, 99999999) 
+        cursor.execute("SELECT * FROM resume_review WHERE resource_id = %s", (resource_id,))
+        if not cursor.fetchone():  
+            return resource_id
+        
+
+def apply_resume_review(usern, filen):
+    print("Resume Review")
+    con=connect_to_database()
+    cursor=con.cursor()
+    rid = resource_id(cursor)
+    print("Generated resume review ID:", rid) 
+
+    #cursor.execute("SELECT document_id FROM documents WHERE username = %s", (username,))
+    cursor.execute("SELECT document_id FROM documents WHERE user_id = %s AND filename = %s ORDER BY update_time DESC LIMIT 1", (usern, filen))
+    doc_id = cursor.fetchone()[0]
+
+    if doc_id==None:
+        print("You did not submit your resume for review.")
+       
+    else:
+        cursor.execute("INSERT INTO resource_application (user_id, resource_id, name) VALUES (%s, %s, %s)",
+                           (usern, rid, doc_id))
+        cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)",
+                           (rid,))
+        print("You are now registered for resume review.")
+    con.commit()
+    con.close()
+
+
+
+
+def resume_menu(username):
+    filename = "Resume"
+    while True:
+        title = "Resume Menu"
+        option1 = "[1] Submit Resume"
+        option2 = "[2] Apply for Resume Review"
+        option3 = "[3] Back"
+        box_width = 100
+
+        print("\033c\033[3J")
+        print("╔" + "═" * (box_width - 2) + "╗")
+        print("║" + title.center(box_width - 2) + "║")
+        print("╠" + "═" * (box_width - 2) + "╣")
+        #print("╠" + "═" * (box_width - 2) + "╣")
+        print("║" + option1.center(box_width - 2) + "║")
+        print("║" + option2.center(box_width - 2) + "║")
+        print("║" + option3.center(box_width - 2) + "║")
+        print("╚" + "═" * (box_width - 2) + "╝")
+        print()   
+        user_choice = input("Enter your choice: ")
+        if user_choice == "1":
+            print("\033c\033[3J")
+            title = input("Enter document title: ")
+            doc_type = input("Enter document type: ")
+            upload_document(username, title, doc_type, filename)
+            input("Press Enter to return to the menu...")
+        elif user_choice == "2":
+            print("\033c\033[3J")
+            apply_resume_review(username, filename)
+            input("Press Enter to return to the menu...")
+        elif user_choice == "3":
+            return
+        else: 
+            print("Invalid choice. Please try again.")
+
+
 def user_menu(username):
     while True:
         option = "[P] Profile"
-        option2 = "[M] Mentorships"
+        option2 = "[M] Mentorship"
         option3 = "[W] Workshops"
         option4 = "[R] Resume"
         option5 = "[L] Logout"
+        option6= "[O] Other Resources"
         box_width = 100
 
         print("╔" + "═" * (box_width - 2) + "╗")
@@ -338,17 +485,14 @@ def user_menu(username):
             print("\033c\033[3J")
             mentorship_signup(username)
         elif user_choice.lower() == "w":
-            print("\033c\033[3J")
-            view_workshops(username)
+             print("\033c\033[3J")
+             view_workshops(username)
         elif user_choice.lower() == "r":
-            print("\033c\033[3J")
-            resume_menu(username)
+             print("\033c\033[3J")
+             resume_menu(username)
         elif user_choice.lower() == "l":
             print("\033c\033[3J")
             return -1
-        elif user_choice == '2':  # Add this condition to call see_documents
-            print("\033c\033[3J")
-            see_documents(username)  # Call see_documents function
         else:
             print("Invalid input.")
             return True
@@ -386,4 +530,3 @@ def user_dashboard(username):
         pass
     else:
         user_option = input("")
-
