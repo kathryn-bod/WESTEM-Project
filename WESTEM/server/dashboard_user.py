@@ -445,6 +445,7 @@ def apply_resume_review(usern, filen):
 
     con.close()
 
+
 def resume_menu(username):
     filename = 'resume'
     while True:
