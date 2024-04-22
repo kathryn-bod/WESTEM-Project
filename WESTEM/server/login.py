@@ -87,11 +87,12 @@ def register_employee(cursor, con):
     phone_number = input("Phone Number: ")
     address = input("Address: ")
     dob = input("Date of Birth (YYYY-MM-DD): ")
+    experience = input("Work Experience: ")
 
     # Hash password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob))
+    cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob, experience) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob, experience))
     con.commit()
     print("Employee registered successfully! Your Employee ID is:", emp_id)
     logged_in_employee = emp_id

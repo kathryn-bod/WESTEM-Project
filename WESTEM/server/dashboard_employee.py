@@ -17,7 +17,29 @@ def generate_unique_resource_id(cursor):
         if count == 0:
             # Unique resource_id found
             return resource_id
-        
+
+
+def show_workshops():
+    con = connect_to_database()
+    cursor = con.cursor()
+    try:
+        cursor.execute("SELECT workshop_name, duration, about FROM workshops")
+        workshops = cursor.fetchall()
+        if workshops:
+            print("List of Workshops:")
+            for workshop in workshops:
+                workshop_name, duration, about = workshop
+                print(f"Workshop Name: {workshop_name}")
+                print(f"Duration: {duration} hours")
+                print(f"About: {about}")
+                print("-" * 50)
+        else:
+            print("There are no workshops currently being offered.")
+    finally:
+        cursor.close()
+        con.close()
+
+
 def workforWestem(user_in, employee_id):
     con = connect_to_database()
     cursor = con.cursor()
@@ -89,11 +111,18 @@ def workforWestem(user_in, employee_id):
                             resource_id = generate_unique_resource_id(cursor)
                             cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))
                             con.commit()
-                            cursor.execute("SELECT resource_id FROM resources WHERE employee_id = %s", (employee_id,))
-                            ID =cursor.fetchone()
-                            cursor.execute("INSERT INTO workshops (resource_id, about, duration, workshop_name) VALUES (%s, %s, %s, %s)", (resource_id, name_in, when_in, what_in))
+                            #cursor.execute("SELECT resource_id FROM resources WHERE employee_id = %s", (employee_id,))
+                            #ID =cursor.fetchone()
+                            print("Inserting into workshops table:")
+                            insert_workshop_query = "INSERT INTO workshops (resource_id, about, duration, workshop_name) VALUES (%s, %s, %s, %s)"
+                            print("Insert Workshop Query:", insert_workshop_query)
+                            print("Values:", (resource_id, what_in, when_in, name_in))
+                            cursor.execute(insert_workshop_query, (resource_id, what_in, when_in, name_in))
+                            con.commit()
+                            print("Insertion into workshops table successful.")
                             print("\033c\033[3J")
                             print("Thank you for helping us by teaching this workshop!\nIt has been scheduled.")
+                            break
             elif user_in.lower() == 'h':
                 resumeTxt = "Resume Reviewing"
                 print("║" + resumeTxt.center(box_width - 2) + "║")
@@ -115,10 +144,16 @@ def workforWestem(user_in, employee_id):
                     resource_id = generate_unique_resource_id(cursor)
                     cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))                    
                     con.commit()
-                    cursor.execute("SELECT LAST_INSERT_ID()")
-                    ID = cursor.fetchone()[0]
-                    cursor.execute("INSERT INTO resume_review (resource_id, reviewer) VALUES (%s, %s)", (ID, reviewer))
+                    #cursor.execute("SELECT LAST_INSERT_ID()")
+                    #ID = cursor.fetchone()[0]
+                    #cursor.execute("INSERT INTO resume_review (resource_id, reviewer) VALUES (%s, %s)", (ID, reviewer))
+                    print("Inserting into resume_review table:")
+                    insert_review_query = "INSERT INTO resume_review (resource_id, reviewer) VALUES (%s, %s)"
+                    print("Insert Review Query:", insert_review_query)
+                    print("Values:", (resource_id, reviewer))
+                    cursor.execute(insert_review_query, (resource_id, reviewer))
                     con.commit()
+                    print("Insertion into resume_review table successful.")
                     print("\033c\033[3J")
                     print("Thank you for your assistance!\nYou will be notified when you are assigned a resume to review.")
                     break
@@ -169,7 +204,8 @@ def employee_options(choice, employee_id):
             if user_in.lower() == "s":
                 workforWestem(user_in, employee_id)
             elif user_in.lower() == "l":
-                pass
+                show_workshops()
+                input("Press Enter to return to the menu...")
             elif user_in.lower() == "b":
                 print("\033c\033[3J")
                 return -1
