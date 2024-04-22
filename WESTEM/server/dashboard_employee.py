@@ -1,4 +1,5 @@
 import mysql.connector
+import random
 
 def connect_to_database():
     return mysql.connector.connect(
@@ -8,81 +9,124 @@ def connect_to_database():
         database="westem"
     )
 
-def workforWestem(user_in, employee_id, cursor, con):
-    while True: 
-        box_width = 100
-        overallTxt = "Resource Application Page"
-        cancelTxt = "Enter C at any point to cancel your application process."
-        print("╔" + "═" * (box_width - 2) + "╗")
-        print("║" + overallTxt.center(box_width - 2) + "║")
-        print("║" + cancelTxt.center(box_width - 2) + "║")
-        print("║" + " " * (box_width - 2) + "║")
-        #print("╚" + "═" * (box_width - 2) + "╝")
-        if user_in.lower() == 'a':
-            mentorTxt = "Mentorship Application"
-            #print("╔" + "═" * (box_width - 2) + "╗")
-            print("║" + mentorTxt.center(box_width - 2) + "║")
-            print("╚" + "═" * (box_width - 2) + "╝")
-            print()
-            why_in = input("Why do you want to be a mentor?")
-            if why_in.lower() == 'c':
-                print("\033c\033[3J")
-                return -1
-        elif user_in.lower() == 's':
-            workshopTxt = "Workshop Signup"
-            #print("╔" + "═" * (box_width - 2) + "╗")
-            print("║" + workshopTxt.center(box_width - 2) + "║")
-            print("╚" + "═" * (box_width - 2) + "╝")
-            print()
-            when_in = input("Duration of workshop:")
-            if when_in.lower() == 'c' :
-                print("\033c\033[3J")
-                return -1
-            else:
-                name_in = input("Workshop title:")
-                if name_in.lower() == 'c' :
+def generate_unique_resource_id(cursor):
+    while True:
+        resource_id = random.randint(100000, 999999)
+        cursor.execute("SELECT COUNT(*) FROM resources WHERE resource_id = %s", (resource_id,))
+        count = cursor.fetchone()[0]
+        if count == 0:
+            # Unique resource_id found
+            return resource_id
+        
+def workforWestem(user_in, employee_id):
+    con = connect_to_database()
+    cursor = con.cursor()
+    try:
+        while True: 
+            box_width = 100
+            overallTxt = "Resource Application Page"
+            cancelTxt = "Enter C at any point to cancel this process."
+            print("╔" + "═" * (box_width - 2) + "╗")
+            print("║" + overallTxt.center(box_width - 2) + "║")
+            print("║" + cancelTxt.center(box_width - 2) + "║")
+            print("║" + " " * (box_width - 2) + "║")
+            if user_in.lower() == 'a':
+                mentorTxt = "Mentorship Application"
+                print("║" + mentorTxt.center(box_width - 2) + "║")
+                print("╚" + "═" * (box_width - 2) + "╝")
+                print()
+                what_in = input("Choose one of the following project focuses to be a mentor for:\n1 - data\n2 - web design\n3 - backend\n4 - theory\n")
+                if what_in.lower() == 'c':
+                    print("\033c\033[3J")
+                    return -1
+                else: 
+                    # Check if the chosen project focus exists in the projects table
+                    cursor.execute("SELECT * FROM projects WHERE type = %s", (what_in,))
+                    project = cursor.fetchone()
+                    if project:
+                        # Project focus exists, proceed with mentorship application
+                        name = "mentorship"
+                        resource_id = generate_unique_resource_id(cursor)
+                        cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))
+                        con.commit()
+                        print("Mentorship application successful!")
+                    else:
+                        print("There are currently no projects that match that focus.\nWould you like to choose a different focus? (Y/N)\n")
+                        choose = input()
+                        if choose.lower() == 'n':
+                            print("\033c\033[3J")
+                            print("We apologize for the inconvenience, be sure to keep checking for projects of that variety if you are still interested in mentorship!")
+                            return -1
+                        elif choose.lower() == 'y':
+                            print("\033c\033[3J")
+                            return True 
+                        else:
+                            print("\033c\033[3J")
+                            print("Invalid input. Returning you to the application page.")
+                            workforWestem(user_in, employee_id)
+                            
+            elif user_in.lower() == 's':
+                workshopTxt = "Workshop Signup"
+                print("║" + workshopTxt.center(box_width - 2) + "║")
+                print("╚" + "═" * (box_width - 2) + "╝")
+                print()
+                when_in = input("Duration of workshop:")
+                if when_in.lower() == 'c' :
                     print("\033c\033[3J")
                     return -1
                 else:
-                    what_in = input("Workshop description: ")
-                    if what_in.lower() == 'c' :
+                    name_in = input("Workshop title:")
+                    if name_in.lower() == 'c' :
                         print("\033c\033[3J")
                         return -1
-                
-                    
-            #insert employee info and workshop info into workshop tableINSERT INTO mentorship_program (resource_id, resource_id, mentor)
-        elif user_in.lower() == 'h':
-            resumeTxt = "Resume Reviewing"
-            #print("╔" + "═" * (box_width - 2) + "╗")
-            print("║" + resumeTxt.center(box_width - 2) + "║")
-            print("╚" + "═" * (box_width - 2) + "╝")
-            print()
-            check = input("Are you sure you want to review resumes for free? (Y/N)\n")
-            if check.lower() == 'n' or check.lower() =='c':
-                #insert employee info into resume_review table
-                print("\033c\033[3J")
-                print("If you ever change your mind, we would love to have your assistance!")
-                return -1
-            elif check.lower() == 'y':
-                print("Thank you for your assistance!\nYou will be notified when you are assigned a resume to review.")
-                cursor.execute("SELECT first_name, last_name FROM employee WHERE employer_id = %s", (employee_id,))
-                con.commit()
-                rows = cursor.fetchall()
-                for row in rows: 
-                    first = row[0]
-                    last = row[1]
-                reviewer = first+" "+last
-                name = "resume review"
-                cursor.execute("INSERT INTO resources (name, employee_id) VALUES (%s, %s)", (name, employee_id))
-                con.commit()
-                #cursor.execute("SELECT resource_id FROM resources WHERE employee_id = %s", (employee_id))
-                #resource = cursor.fetchone()
-                break
+                    else:
+                        what_in = input("Workshop description: ")
+                        if what_in.lower() == 'c' :
+                            print("\033c\033[3J")
+                            return -1
+                        else:
+                            name = "workshop"
+                            resource_id = generate_unique_resource_id(cursor)
+                            cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))
+                            con.commit()
+                            cursor.execute("SELECT resource_id FROM resources WHERE employee_id = %s", (employee_id,))
+                            ID =cursor.fetchone()
+                            cursor.execute("INSERT INTO workshops (resource_id, about, duration, workshop_name) VALUES (%s, %s, %s, %s)", (resource_id, name_in, when_in, what_in))
+                            print("\033c\033[3J")
+                            print("Thank you for helping us by teaching this workshop!\nIt has been scheduled.")
+            elif user_in.lower() == 'h':
+                resumeTxt = "Resume Reviewing"
+                print("║" + resumeTxt.center(box_width - 2) + "║")
+                print("╚" + "═" * (box_width - 2) + "╝")
+                print()
+                check = input("Are you sure you want to review resumes for free? (Y/N)\n")
+                if check.lower() == 'n' or check.lower() =='c':
+                    print("\033c\033[3J")
+                    print("If you ever change your mind, we would love to have your assistance!")
+                    return -1
+                elif check.lower() == 'y':
+                    cursor.execute("SELECT first_name, last_name FROM employee WHERE employer_id = %s", (employee_id,))
+                    rows = cursor.fetchall()
+                    for row in rows: 
+                        first = row[0]
+                        last = row[1]
+                    reviewer = first+" "+last
+                    name = "resume review"
+                    resource_id = generate_unique_resource_id(cursor)
+                    cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))                    
+                    con.commit()
+                    cursor.execute("SELECT LAST_INSERT_ID()")
+                    ID = cursor.fetchone()[0]
+                    cursor.execute("INSERT INTO resume_review (resource_id, reviewer) VALUES (%s, %s)", (ID, reviewer))
+                    con.commit()
+                    print("\033c\033[3J")
+                    print("Thank you for your assistance!\nYou will be notified when you are assigned a resume to review.")
+                    break
+    finally:
+        cursor.close()
+        con.close()
 
-
-
-
-def employee_options(choice, employee_id, cursor, con):
+def employee_options(choice, employee_id):
     while True: 
         if choice.lower() == 'm':
             box_width = 100
@@ -100,15 +144,16 @@ def employee_options(choice, employee_id, cursor, con):
             user_in = input("What would you like to do now?\nEnter your choice:")
             if user_in.lower() == "a":
                 print("\033c\033[3J")
-                workforWestem(user_in, employee_id, cursor, con)
+                workforWestem(user_in, employee_id)
             elif user_in.lower() == "i":
                 pass
             elif user_in.lower() == "b":
-                pass
+                print("\033c\033[3J")
+                return -1
             else: 
                 print("\033c\033[3J")
                 print("Invalid input. Re-enter your choice: ") 
-                employee_options(choice, employee_id,  cursor, con) 
+                employee_options(choice, employee_id) 
         elif choice.lower() == 'w':
             box_width = 100
             signuptxt = "[S] Sign-up to teach a workshop"
@@ -122,7 +167,7 @@ def employee_options(choice, employee_id, cursor, con):
             print()
             user_in = input("What would you like to do now?\nEnter your choice:")
             if user_in.lower() == "s":
-                workforWestem(user_in, employee_id, cursor, con)
+                workforWestem(user_in, employee_id)
             elif user_in.lower() == "l":
                 pass
             elif user_in.lower() == "b":
@@ -131,7 +176,7 @@ def employee_options(choice, employee_id, cursor, con):
             else: 
                 print("\033c\033[3J")
                 print("Invalid input. Re-enter your choice: ") 
-                employee_options(choice, employee_id, cursor, con) 
+                employee_options(choice, employee_id) 
         elif choice.lower() == 'r':
             box_width = 100
             resumehelp = "[H] Help review resumes!"
@@ -146,20 +191,20 @@ def employee_options(choice, employee_id, cursor, con):
             user_in = input("What would you like to do now?\nEnter your choice:")
             if user_in.lower() == "h":
                print("\033c\033[3J")
-               workforWestem(user_in, employee_id, cursor, con)
+               workforWestem(user_in, employee_id)
             elif user_in.lower() == "b":
                 print("\033c\033[3J")
                 return -1
             else: 
                 print("\033c\033[3J")
                 print("Invalid input. Re-enter your choice: ") 
-                employee_options(choice, employee_id, cursor, con)
+                employee_options(choice, employee_id)
         else: 
             print("\033c\033[3J")
             print("Invalid input. Re-enter your choice: ") 
-            employee_options(choice, employee_id, cursor, con)
+            employee_options(choice, employee_id)
  
-def resource_menu(employee_id, cursor, con):
+def resource_menu(employee_id):
     while True:
         option = "[M] Mentor"
         option2 = "[W] Workshops"
@@ -177,18 +222,15 @@ def resource_menu(employee_id, cursor, con):
         user_choice = input("Enter your choice: ")
         if user_choice.lower() in ("m", "w", "r"):
             print("\033c\033[3J")
-            employee_options(user_choice, employee_id, cursor, con)
+            employee_options(user_choice, employee_id)
         elif user_choice.lower() == "e":
             print("\033c\033[3J")
             return -1
         else:
             print("Invalid input.")
             return True
-
+        
 def dashboard_employee(employee_id):
-    con = connect_to_database()
-    cursor = con.cursor()
-
     title = "WESTEM"
     title2 = "EMPLOYEE DASHBOARD"
 
@@ -204,23 +246,19 @@ def dashboard_employee(employee_id):
     print()
 
     text = "[R] Resources"
-    text2 = "[L] Logout"
-    text3 = "[B] Back to Main Menu"
+    text2 = "[B] Back to Main Menu"
     print("╔" + "═" * (box_width - 2) + "╗")
     print("║" + text.center(box_width - 2) + "║")
     print("║" + text2.center(box_width - 2) + "║")
     print("╚" + "═" * (box_width - 2) + "╝")
 
-    con = connect_to_database()
-    cursor = con.cursor()
     user_option = input("Enter your choice: ")
     if user_option.lower() == 'r':
         print("\033c\033[3J") 
-        resource_menu(employee_id, cursor, con)
+        resource_menu(employee_id)
     elif user_option.lower() == 'b':
         print("\033c\033[3J")
         return -1
     else: 
         user_option = input("Invalid input. Re-enter your choice: ")
         return True
-

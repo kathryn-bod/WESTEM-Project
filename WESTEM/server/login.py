@@ -6,7 +6,7 @@ import bcrypt
 
 
 from server.dashboard_user import user_dashboard
-from server.dashboard_employee import employee_dashboard
+from server.dashboard_employee import dashboard_employee
 
 
 # Global variables to track user and employee login status
@@ -91,7 +91,7 @@ def register_employee(cursor, con):
     # Hash password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob))
+    cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob))
     con.commit()
     print("Employee registered successfully! Your Employee ID is:", emp_id)
     logged_in_employee = emp_id
@@ -120,6 +120,7 @@ def login_employee(cursor):
         employee_id = result[0]
         print(f"Welcome back, Employee {employee_id}!")
         logged_in_employee = employee_id
+        dashboard_employee(logged_in_employee)
     else:
         print("Invalid credentials.")
 
@@ -206,7 +207,7 @@ def main_menu(cursor, con):
             if logged_in_user:
                 user_dashboard(logged_in_user)
             if logged_in_employee:
-                employee_dashboard()
+                dashboard_employee(logged_in_employee)
         elif choice == '5':
             informational_menu()
         elif choice == '6':
