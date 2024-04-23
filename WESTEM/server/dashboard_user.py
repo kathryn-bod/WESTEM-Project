@@ -434,11 +434,13 @@ def apply_resume_review(usern, filen):
         if doc_id_result:
             doc_id = doc_id_result[0]
             print("Found resume document with ID:", doc_id)
+            con = connect_to_database()
+            cursor = con.cursor()
             # Insert into resource_application and resume_review tables
-            # cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
-            # cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
-            # print("You are now registered for resume review.")
-            # con.commit()
+            cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
+            cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+            print("You are now registered for resume review.")
+            con.commit()
         else:
             print("No resume document found.")
     else:
@@ -446,7 +448,7 @@ def apply_resume_review(usern, filen):
 
     # Make sure to fetch all results before closing the cursor
     cursor.fetchall()
-    # con.close()
+    con.close()
 
 
 
