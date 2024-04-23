@@ -415,7 +415,13 @@ def view_workshops(username):
         con = connect_to_database()
         cursor = con.cursor()
 
-        cursor.execute("SELECT w.resource_id, w.duration, w.about, w.workshop_name FROM workshops w")
+        # Fetch workshops along with employee information
+        cursor.execute("""
+            SELECT w.resource_id, w.duration, w.about, w.workshop_name, e.first_name, e.last_name
+            FROM workshops w
+            INNER JOIN resources r ON w.resource_id = r.resource_id
+            INNER JOIN employee e ON r.employee_id = e.employer_id
+        """)
         workshops = cursor.fetchall()
 
         if not workshops:
@@ -426,20 +432,27 @@ def view_workshops(username):
             print("\033c\033[3J")
             print("╔" + "═" * (box_width - 2) + "╗")
             print("║" + title.center(box_width - 2) + "║")
-            print("╠" + "═" * (box_width - 2) + "╣")
+            print("╚" + "═" * (box_width - 2) + "╝")
             print()
 
             for workshop in workshops:
-                resource_id, duration, about, workshop_name = workshop
+                resource_id, duration, about, workshop_name, employee_first_name, employee_last_name = workshop
                 print("Resource ID:", resource_id)
                 print("Workshop Name:", workshop_name)
                 print("Duration:", duration, "minutes")
                 print("About Workshop:", about)
+                print("Conducted by:", employee_first_name, employee_last_name)
                 print()
+
+        print()
+        # Include an option to return to the user menu
+        input("Press Enter to return to the menu...")
+        print()
 
         con.close()
     except mysql.connector.Error as err:
         print("Error:", err)
+
 
 
 
