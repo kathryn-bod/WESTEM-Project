@@ -40,6 +40,7 @@ def show_workshops():
         con.close()
 
 def type_for_proj():
+        
         print("Select what type of project you would like to work on from the following list:")
         print("[D] Data Science")
         print("[W] Web Development")
@@ -57,6 +58,8 @@ def type_for_proj():
             project_type="Frontend"
         elif type in ["FS", "fS", "Fs", "fs"]:
             project_type= "Full Stack"
+        elif type in ["C", "c"]:
+            project_type = 'c'
         else:
            print("Invalid Project Type. You Must Select From the List Above.")
         return project_type
@@ -89,10 +92,14 @@ def workforWestem(user_in, employee_id):
                     project = cursor.fetchone()
                     if project:
                         # Project focus exists, proceed with mentorship application
+                        con = connect_to_database()
+                        cursor = con.cursor()
                         name = "mentorship"
                         resource_id = generate_unique_resource_id(cursor)
                         cursor.execute("INSERT INTO resources (resource_id, name, employee_id) VALUES (%s, %s, %s)", (resource_id, name, employee_id))
                         con.commit()
+                        con = connect_to_database()
+                        cursor = con.cursor()
                         print("Inserting into mentorship table:")
                         insert_mentorship_query = "INSERT INTO mentorship (user_id, project_id, employee_id) VALUES (%s, %s, %s)"
                         print("Insert Mentorship Query:", insert_mentorship_query)
