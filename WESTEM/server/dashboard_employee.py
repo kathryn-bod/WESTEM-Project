@@ -66,9 +66,19 @@ def type_for_proj():
 
 
 def workforWestem(user_in, employee_id):
+
     con = connect_to_database()
     cursor = con.cursor()
     try:
+
+        cursor.execute("SELECT COUNT(*) FROM resources WHERE employee_id = %s", (employee_id,))
+        row = cursor.fetchone()
+        if row is not None:
+            count = row[0]
+        if count > 0:
+            print("You are already working on a resource. You cannot apply for a new one at this time.")
+            return -1
+
         while True: 
             box_width = 100
             overallTxt = "Resource Application Page"
@@ -192,6 +202,52 @@ def workforWestem(user_in, employee_id):
         cursor.close()
         con.close()
 
+def show_current_projects(employee_id):
+    try:
+        con = connect_to_database()
+        cursor = con.cursor()
+
+        # SQL query to retrieve current projects for the employee
+        query = """
+                SELECT p.project_id, p.name, p.type, p.budget
+                FROM projects p
+                INNER JOIN mentorship m ON p.project_id = m.project_id
+                WHERE m.employee_id = %s
+                """
+        cursor.execute(query, (employee_id,))
+        curr_projects = cursor.fetchall()
+
+        if curr_projects:
+            print("Current Projects:")
+            for project in curr_projects:
+                print("Project ID:", project[0])
+                print("Project Title:", project[1])
+                print("Type:", project[2])
+                print("Budget:", project[3])
+                print("\n")
+        else:
+            print("No current projects found for this employee.")
+
+        con.close()
+
+    except mysql.connector.Error as err:
+        print("MySQL Error:", err)
+    except Exception as ex:
+        print("Error:", ex)
+
+
+def show_mentorship_overview():
+    print("Mentorship Overview:")
+    print("\n")
+    print("=" * 100)
+    print("Mentorship is a program designed to provide users with the opportunity")
+    print("to work on their own projects under the guidance and expertise of a mentor.")
+    print("Mentors offer support, advice, and knowledge to help users succeed in their projects.")
+    print("This program aims to foster collaboration, learning, and growth within the community.")
+    print("=" * 100)
+    print("\n")
+
+
 def employee_options(choice, employee_id):
     while True: 
         if choice.lower() == 'm':
@@ -211,8 +267,10 @@ def employee_options(choice, employee_id):
             if user_in.lower() == "a":
                 print("\033c\033[3J")
                 workforWestem(user_in, employee_id)
+            elif user_in.lower() == "w":
+                show_mentorship_overview()
             elif user_in.lower() == "i":
-                pass
+                show_current_projects(employee_id)
             elif user_in.lower() == "b":
                 print("\033c\033[3J")
                 return -1

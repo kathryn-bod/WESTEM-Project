@@ -40,10 +40,7 @@ def register_user(cursor, con):
     global logged_in_user
     print("Please provide the following details to create an account:")
     username = input("Username: ")
-    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-    if cursor.fetchone():
-        print("Username already exists. Please choose a different one.")
-        return
+    
     while True:
         password = input("Password (8 chars, upper, lower, digit, special): ")
         valid, message = validate_password(password)
@@ -60,11 +57,20 @@ def register_user(cursor, con):
 
     # Hash password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    
+    try:
+        cursor.execute("INSERT INTO users (username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (username, hashed_password, first_name, last_name, email, phone_number, address, dob))
+        con.commit()
+        print("User registered successfully!")
+        logged_in_user = username
 
-    cursor.execute("INSERT INTO users (username, password, first_name, last_name, email, phone_number, address, dob) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (username, hashed_password, first_name, last_name, email, phone_number, address, dob))
-    con.commit()
-    print("User registered successfully!")
-    logged_in_user = username
+    except mysql.connector.errors.DatabaseError as err:
+        # Check if the error is due to duplicate username
+        if err.errno == 1644:
+            print("Username already exists. Please choose a different username.")
+        else:
+            # For other database errors, print the error message
+            print("Error:", err)
 
 
 # Function to handle employee registration
@@ -72,14 +78,19 @@ def register_employee(cursor, con):
     global logged_in_employee
     print("Please provide the following details to create an employee account:")
     emp_id = employee_id(cursor)
+
+    
+    username = input("Username: ")
+
+    
     while True:
-        username = input("Username: ")
         password = input("Password (8 chars, upper, lower, digit, special): ")
         valid, message = validate_password(password)
         if valid:
             break
         else:
             print(message)
+
     first_name = input("First Name: ")
     last_name = input("Last Name: ")
     email = input("Email: ")
@@ -91,10 +102,24 @@ def register_employee(cursor, con):
     # Hash password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob, experience) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob, experience))
-    con.commit()
-    print("Employee registered successfully! Your Employee ID is:", emp_id)
-    logged_in_employee = emp_id
+    try:
+        # Attempt to execute the INSERT query
+        cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob, experience) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob, experience))
+        con.commit()
+        print("Employee registered successfully! Your Employee ID is:", emp_id)
+        logged_in_employee = emp_id
+
+    except mysql.connector.errors.DatabaseError as err:
+        # Check if the error is due to duplicate employee username
+        if err.errno == 1644:
+            print("Employee username already exists. Please choose a different username.")
+        # Check if the error is due to duplicate employee ID
+        elif "Duplicate employee ID" in str(err):
+            print("Duplicate employee ID. Please contact the administrator.")
+            #print("Duplicate employee ID. Please contact the administrator.")
+        else:
+            # For other database errors, print the error message
+            print("Error:", err)
 
 # Login functions for users and employees
 def login_user(cursor):
@@ -136,6 +161,49 @@ def logout_employee():
     print(f"Goodbye, Employee {logged_in_employee}!")
     logged_in_employee = None
 
+
+
+# Function to display Privacy Policies
+def privacy_policies():
+    print("╔═════════════════════════════════════════╗")
+    print("║             Privacy Policies            ║")
+    print("╠═════════════════════════════════════════╣")
+    print("║ 1. We respect your privacy and protect  ║")
+    print("║    your personal information.           ║")
+    print("║ 2. We only collect data necessary for   ║")
+    print("║    providing our services.              ║")
+    print("║ 3. Your data is securely stored and     ║")
+    print("║    never shared with third parties.     ║")
+    print("╚═════════════════════════════════════════╝")
+    print("\n")
+
+
+def about_us():
+    print("╔═════════════════════════════════════════╗")
+    print("║               About Us                  ║")
+    print("╠═════════════════════════════════════════╣")
+    print("║ We are dedicated to empowering women    ║")
+    print("║ in STEM fields. Our platform connects   ║")
+    print("║ users with resources, mentorship, and   ║")
+    print("║ opportunities to foster growth and      ║")
+    print("║ success in their careers. Join us in    ║")
+    print("║ building an inclusive and diverse STEM  ║")
+    print("║ community.                              ║")
+    print("╚═════════════════════════════════════════╝")
+    print("\n")
+
+
+# Function to display Stories
+def stories():
+    print("╔══════════════════════════════════════════════════════════════════════════════════════╗")
+    print("║                                 Stories About the Website                            ║")
+    print("╠══════════════════════════════════════════════════════════════════════════════════════╣")
+    print("║ Here, we share inspiring stories from our community members about their experiences, ║")
+    print("║ challenges, and triumphs in STEM. Join us in celebrating diversity and empowerment   ║")
+    print("║ in the world of science, technology, engineering, and mathematics.                   ║")
+    print("╚══════════════════════════════════════════════════════════════════════════════════════╝")
+    print("\n")
+
 # Information menu
 def informational_menu():
     while True:
@@ -148,29 +216,19 @@ def informational_menu():
         if choice == '4':
             break
         elif choice == '1':
-            print("About Us: We are dedicated to providing the best service.")
+            print("About Us: We are dedicated to providing the best service.\n")
+            about_us()
         elif choice == '2':
-            print("Policies: Here are our user and privacy policies.")
+            print("Policies: Here are our user and privacy policies.\n")
+            privacy_policies()
         elif choice == '3':
-            print("Stories: Read about our community's experiences.")
+            print("Stories: Read about our community's experiences.\n")
+            stories()
+
         else:
             print("Invalid choice. Please try again.")
 
-"""
-def indexing(cursor):
-    try:
-        cursor.execute("CREATE INDEX idx_emp_password ON employee(password)")
-    except mysql.connector.Error as err:
-        print("Error:", err)
-    try:
-         cursor.execute("CREATE INDEX idx_username ON users(username)")
-    except mysql.connector.Error as err:
-        print("Error:", err)
-    try:
-         cursor.execute("CREATE INDEX idx_emp_id on employee(employee_id)")
-    except mysql.connector.Error as err:
-        print("Error:", err)
-""" 
+
 
 # Main menu that handles different states based on login
 def main_menu(cursor, con):

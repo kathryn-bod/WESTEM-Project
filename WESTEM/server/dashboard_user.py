@@ -272,24 +272,56 @@ def project_status(username):
         cursor.execute(query_fetch_project_id, (username,))
         project_id = cursor.fetchone()
 
-        #assign_mentor(project_id, username)
-
         if project_id:
             project_id = project_id[0]
 
-            # Query the mentorship table to check if a mentor is assigned to the project
-            query_check_mentorship = "SELECT r.name FROM mentorship m JOIN resources r ON m.employee_id = r.employee_id WHERE m.project_id = %s"
-            cursor.execute(query_check_mentorship, (project_id,))
-            mentor_data = cursor.fetchone()
+            con = connect_to_database()
+            cursor = con.cursor()
 
-            if mentor_data:
-                mentor_name = mentor_data[0]
-                print("Project Status:")
-                print("Mentor assigned to the project:", mentor_name)
+            # Query the mentorship table to check if a mentor is assigned to the project
+            query_check_mentorship = "SELECT employee_id FROM mentorship WHERE project_id = %s"
+            cursor.execute(query_check_mentorship, (project_id,))
+            mentor_id = cursor.fetchone()
+
+            if mentor_id:
+                mentor_id = mentor_id[0]
+
+                con = connect_to_database()
+                cursor = con.cursor()
+                # Query the resources table to get the name of the mentor
+                query_mentor_name = "SELECT name FROM resources WHERE employee_id = %s"
+                cursor.execute(query_mentor_name, (mentor_id,))
+                mentor_name = cursor.fetchone()[0]
+
+                con = connect_to_database()
+                cursor = con.cursor()
+                # Query the employee table to get additional information about the mentor
+                query_mentor_info = "SELECT first_name, last_name, email, experience FROM employee WHERE employer_id = %s"
+                cursor.execute(query_mentor_info, (mentor_id,))
+                mentor_info = cursor.fetchone()
+
+                if mentor_info:
+                    mentor_first_name, mentor_last_name, mentor_email, mentor_experience = mentor_info
+
+                    print("Project Mentor Information:")
+                    print("\n")
+                    print("Mentor ID:", mentor_id)
+                    print("Mentor Name:", mentor_name)
+                    print("Mentor First Name:", mentor_first_name)
+                    print("Mentor Last Name:", mentor_last_name)
+                    print("Mentor Email:", mentor_email)
+                    print("Mentor Experience:", mentor_experience)
+                    print("\n")
+                else:
+                    print("No mentor information found.")
+
             else:
                 print("No mentor assigned to the project.")
         else:
             print("No project found for the provided username.")
+
+        # Consume any unread results
+        cursor.fetchall()
 
         con.close()
     except mysql.connector.Error as err:
@@ -298,35 +330,37 @@ def project_status(username):
         print("Error:", ex)
 
 
+
 def view_proj(username):
-     title = "Current Projects"
-     box_width = 100
-     print("╔" + "═" * (box_width - 2) + "╗")
-     print("║" + title.center(box_width - 2) + "║")
-     #print("╠" + "═" * (box_width - 2) + "╣")
-     print("╚" + "═" * (box_width - 2) + "╝")
-     try:
+    title = "Current Projects"
+    box_width = 100
+    print("╔" + "═" * (box_width - 2) + "╗")
+    print("║" + title.center(box_width - 2) + "║")
+    print("╚" + "═" * (box_width - 2) + "╝")
+    try:
         con = connect_to_database()
         cursor = con.cursor()
 
         # SQL query to retrieve current profile information
         query = "SELECT * FROM projects WHERE user_id = %s"
         cursor.execute(query, (username,))
-        curr_projects = cursor.fetchone()
+        curr_projects = cursor.fetchall()  # Fetch all rows instead of just one
 
         if curr_projects:
-            for projects in curr_projects:
-                print("Current Profile Information:")
-                print("1. Project Title:", curr_projects[3])
-                print("2. Type:", curr_projects[2])
-                print("2. Budget:", curr_projects[1])
-                print("\n\n")
+            for project in curr_projects:  # Iterate over each project row
+                print("Current Project Information:")
+                print("1. Project Title:", project[3])  # Adjust index accordingly
+                print("2. Type:", project[2])  # Adjust index accordingly
+                print("3. Budget:", project[1])  # Adjust index accordingly
+                print("\n")
+
         con.close()
 
-     except mysql.connector.Error as err:
+    except mysql.connector.Error as err:
         print("MySQL Error:", err)
-     except Exception as ex:
+    except Exception as ex:
         print("Error:", ex)
+
 
         
 
@@ -342,7 +376,7 @@ def mentorship_signup(username):
         option1 = "[1] Project Interest Form"
         option2 = "[2] View Projects"
         option3 = "[3] Check Status for Project"
-        option4 = "[3] Back"
+        option4 = "[4] Back"
         box_width = 100
 
         print("\033c\033[3J")
@@ -378,28 +412,35 @@ def mentorship_signup(username):
 
 def view_workshops(username):
     try:
-        con=connect_to_database()
-        cursor=con.cursor()
+        con = connect_to_database()
+        cursor = con.cursor()
 
-        cursor.execute("SELECT * FROM WORKSHOPS")
-        wks=cursor.fetchall()
+        cursor.execute("SELECT w.resource_id, w.duration, w.about, w.workshop_name FROM workshops w")
+        workshops = cursor.fetchall()
 
-        if not wks:
+        if not workshops:
             print("There are no scheduled workshops at this time.\n\n")
         else:
-            title="Available Workshops"
+            title = "Available Workshops"
+            box_width = 100
             print("\033c\033[3J")
-            box_width=100
             print("╔" + "═" * (box_width - 2) + "╗")
             print("║" + title.center(box_width - 2) + "║")
             print("╠" + "═" * (box_width - 2) + "╣")
             print()
-            for w in wks:
-                print("Resource ID:", wks[0])
-                print("Duration:", wks[1])
+
+            for workshop in workshops:
+                resource_id, duration, about, workshop_name = workshop
+                print("Resource ID:", resource_id)
+                print("Workshop Name:", workshop_name)
+                print("Duration:", duration, "minutes")
+                print("About Workshop:", about)
+                print()
+
         con.close()
     except mysql.connector.Error as err:
         print("Error:", err)
+
 
 
 def resource_id(cursor):
@@ -434,13 +475,19 @@ def apply_resume_review(usern, filen):
         if doc_id_result:
             doc_id = doc_id_result[0]
             print("Found resume document with ID:", doc_id)
-            con = connect_to_database()
-            cursor = con.cursor()
-            # Insert into resource_application and resume_review tables
-            cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
-            cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
-            print("You are now registered for resume review.")
-            con.commit()
+
+            # Check if the entry already exists
+            cursor.execute("SELECT * FROM resource_application WHERE user_id = %s AND resource_id = %s AND document_id = %s", (usern, resource_id, doc_id))
+            existing_entry = cursor.fetchone()
+
+            if existing_entry:
+                print("This user has already applied for resume review.")
+            else:
+                # Insert into resource_application and resume_review tables
+                cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
+                cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+                print("You are now registered for resume review.")
+                con.commit()
         else:
             print("No resume document found.")
     else:
@@ -449,7 +496,6 @@ def apply_resume_review(usern, filen):
     # Make sure to fetch all results before closing the cursor
     cursor.fetchall()
     con.close()
-
 
 
 
