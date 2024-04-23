@@ -23,7 +23,7 @@ def show_workshops():
     con = connect_to_database()
     cursor = con.cursor()
     try:
-        cursor.execute("SELECT workshop_name, duration, about FROM workshops")
+        cursor.execute("SELECT workshop_name, duration, about FROM workshop_schedule_view")
         workshops = cursor.fetchall()
         if workshops:
             print("List of Workshops:")
@@ -207,12 +207,15 @@ def show_current_projects(employee_id):
         con = connect_to_database()
         cursor = con.cursor()
 
+        user_id_query = "SELECT user_id FROM mentorship WHERE employee_id = %s"
+        cursor.execute(user_id_query, (employee_id,))
+        user_id = cursor.fetchone()[0]
+
         # SQL query to retrieve current projects for the employee
         query = """
-                SELECT p.project_id, p.name, p.type, p.budget
-                FROM projects p
-                INNER JOIN mentorship m ON p.project_id = m.project_id
-                WHERE m.employee_id = %s
+                SELECT project_id, project_title, project_type, budget
+                FROM current_projects_view
+                WHERE employee_id = %s
                 """
         cursor.execute(query, (employee_id,))
         curr_projects = cursor.fetchall()
@@ -220,6 +223,8 @@ def show_current_projects(employee_id):
         if curr_projects:
             print("Current Projects:")
             for project in curr_projects:
+                print("\n")
+                print("User ID:", user_id)
                 print("Project ID:", project[0])
                 print("Project Title:", project[1])
                 print("Type:", project[2])
