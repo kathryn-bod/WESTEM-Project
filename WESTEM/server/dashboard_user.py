@@ -13,7 +13,7 @@ def connect_to_database():
         database="westem"
     )
 
-counter=0
+counter = 0
 
 def generate_document_id():
     global counter
@@ -361,8 +361,7 @@ def view_proj(username):
     except Exception as ex:
         print("Error:", ex)
 
-
-        
+       
 
 def mentorship_signup(username):
     while True:
@@ -463,54 +462,59 @@ def resource_id(cursor):
         if not cursor.fetchone():  
             return resource_id
         
-def apply_resume_review(usern, filen):
+def apply_resume_review(username, filename):
     print("Resume Review")
-    con = connect_to_database()
-    cursor = con.cursor()
-
-    cursor.execute("SELECT resource_id FROM resources WHERE name = 'resume review'")
-    resume_resource = cursor.fetchone()
-    cursor.fetchall()
-    con.close()
-
-    if resume_resource:
-        resource_id = resume_resource[0]
-        print("Found resume resource with ID:", resource_id)
-        print("User ID:", usern)
-        print("File name:", filen)
-
+    try:
         con = connect_to_database()
         cursor = con.cursor()
 
-        cursor.execute("SELECT document_id FROM documents WHERE user_id = %s AND filename = %s ORDER BY update_time DESC LIMIT 1", (usern, filen))
-        doc_id_result = cursor.fetchone()
+        cursor.execute("SELECT resource_id FROM resources WHERE name = 'resume review'")
+        resume_resource = cursor.fetchone()
+        cursor.fetchall()
+        con.close()
 
-        if doc_id_result:
-            doc_id = doc_id_result[0]
-            print("Found resume document with ID:", doc_id)
+        if resume_resource:
+            resource_id = resume_resource[0]
+            print("Found resume resource with ID:", resource_id)
+            print("User ID:", username)
+            print("File name:", filename)
 
-            # Check if the entry already exists
-            cursor.execute("SELECT * FROM resource_application WHERE user_id = %s AND resource_id = %s AND document_id = %s", (usern, resource_id, doc_id))
-            existing_entry = cursor.fetchone()
+            con = connect_to_database()
+            cursor = con.cursor()
 
-            if existing_entry:
-                print("This user has already applied for resume review.")
+            cursor.execute("SELECT document_id FROM documents WHERE user_id = %s AND filename = %s ORDER BY update_time DESC LIMIT 1", (username, filename))
+            doc_id_result = cursor.fetchone()
+
+            if doc_id_result:
+                doc_id = doc_id_result[0]
+                print("Found resume document with ID:", doc_id)
+
+                con = connect_to_database()
+                cursor = con.cursor()
+
+                cursor.execute("SELECT * FROM resource_application WHERE user_id = %s AND resource_id = %s AND document_id = %s", (username, resource_id, doc_id))
+                existing_entry = cursor.fetchone()
+
+                if existing_entry:
+                    print("This user has already applied for resume review.")
+                else:
+                    cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (username, resource_id, doc_id))
+                    cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+                    print("You are now registered for resume review.")
+                    con.commit()
             else:
-                # Insert into resource_application and resume_review tables
-                cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (usern, resource_id, doc_id))
-                cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
-                print("You are now registered for resume review.")
-                con.commit()
+                print("No resume document found.")
         else:
-            print("No resume document found.")
-    else:
-        print("No resume resource found.")
+            print("No resume resource found.")
 
-    # Make sure to fetch all results before closing the cursor
-    cursor.fetchall()
-    con.close()
+        cursor.fetchall()
+        con.close()
 
-
+    except mysql.connector.errors.IntegrityError as e:
+        #print("Error:", e)
+        print("You've already applied for resume review.")
+    except Exception as ex:
+        print("An error occurred:", ex)
 
 def resume_menu(username):
     filename = "resume"
