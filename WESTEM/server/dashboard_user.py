@@ -474,8 +474,8 @@ def resource_id(cursor):
 
 #applying to see resume review        
 def apply_resume_review(username, filename):
-    print("Resume Review")
-    try:
+        print("Resume Review")
+
         con = connect_to_database()
         cursor = con.cursor()
 
@@ -487,8 +487,8 @@ def apply_resume_review(username, filename):
         if resume_resource:
             resource_id = resume_resource[0]
             print("Found resume resource with ID:", resource_id)
-            print("User ID:", username)
-            print("File name:", filename)
+            #print("User ID:", username)
+            #print("File name:", filename)
 
             con = connect_to_database()
             cursor = con.cursor()
@@ -509,8 +509,11 @@ def apply_resume_review(username, filename):
                 if existing_entry:
                     print("This user has already applied for resume review.")
                 else:
+
+                    con = connect_to_database()
+                    cursor = con.cursor()
                     cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (username, resource_id, doc_id))
-                    cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+                    #cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
                     print("You are now registered for resume review.")
                     con.commit()
             else:
@@ -521,11 +524,6 @@ def apply_resume_review(username, filename):
         cursor.fetchall()
         con.close()
 
-    except mysql.connector.errors.IntegrityError as e:
-        #print("Error:", e)
-        print("You've already applied for resume review.")
-    except Exception as ex:
-        print("An error occurred:", ex)
 
 
 #function for resume menu
