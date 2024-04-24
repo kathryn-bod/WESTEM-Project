@@ -507,13 +507,25 @@ def apply_resume_review(username, filename):
                 existing_entry = cursor.fetchone()
 
                 if existing_entry:
-                    print("This user has already applied for resume review.")
+                    con = connect_to_database()
+                    cursor = con.cursor()
+                    cursor.execute("SELECT reviewer FROM resume_review WHERE resource_id = %s", (resource_id,))
+                    reviewer_result = cursor.fetchone()
+
+                    if reviewer_result:
+                        reviewer_name = reviewer_result[0]
+                        print(f"This user has already applied for resume review. Your reviewer is: {reviewer_name}")
+                        print("\n")
+
+                    #print("This user has already applied for resume review.")
+
                 else:
 
                     con = connect_to_database()
                     cursor = con.cursor()
                     cursor.execute("INSERT INTO resource_application (user_id, resource_id, document_id) VALUES (%s, %s, %s)", (username, resource_id, doc_id))
                     #cursor.execute("INSERT INTO resume_review (resource_id) VALUES (%s)", (resource_id,))
+
                     print("You are now registered for resume review.")
                     con.commit()
             else:
