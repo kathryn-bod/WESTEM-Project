@@ -8,11 +8,11 @@ from server.dashboard_user import user_dashboard
 from server.dashboard_employee import dashboard_employee
 
 
-# Global variables to track user and employee login status
+#variables to track user and employee login status
 logged_in_user = None
 logged_in_employee = None
 
-# Function to establish database connection
+#function to establish database connection
 def connect_to_database():
     return mysql.connector.connect(
         host='localhost',
@@ -21,7 +21,7 @@ def connect_to_database():
         database='westem'
     )
 
-
+#Function to validate passwords
 def validate_password(password):
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
@@ -35,7 +35,7 @@ def validate_password(password):
         return False, "Password must contain at least one special character (@, #, $, %, &, *, !, ?)."
     return True, "Password is valid."
 
-# Function to handle user registration
+#function to handle user registration
 def register_user(cursor, con):
     global logged_in_user
     print("Please provide the following details to create an account:")
@@ -55,7 +55,7 @@ def register_user(cursor, con):
     address = input("Address: ")
     dob = input("Date of Birth (YYYY-MM-DD): ")
 
-    # Hash password before saving to database
+    #password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     
     try:
@@ -65,15 +65,15 @@ def register_user(cursor, con):
         logged_in_user = username
 
     except mysql.connector.errors.DatabaseError as err:
-        # Check if the error is due to duplicate username
+        #error is due to duplicate username
         if err.errno == 1644:
             print("Username already exists. Please choose a different username.")
         else:
-            # For other database errors, print the error message
+            
             print("Error:", err)
 
 
-# Function to handle employee registration
+#function to handle employee registration
 def register_employee(cursor, con):
     global logged_in_employee
     print("Please provide the following details to create an employee account:")
@@ -99,29 +99,29 @@ def register_employee(cursor, con):
     dob = input("Date of Birth (YYYY-MM-DD): ")
     experience = input("Work Experience: ")
 
-    # Hash password before saving to database
+    #password before saving to database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     try:
-        # Attempt to execute the INSERT query
+        #INSERT query
         cursor.execute("INSERT INTO employee (employer_id, username, password, first_name, last_name, email, phone_number, address, dob, experience) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (emp_id, username, hashed_password, first_name, last_name, email, phone_number, address, dob, experience))
         con.commit()
         print("Employee registered successfully! Your Employee ID is:", emp_id)
         logged_in_employee = emp_id
 
     except mysql.connector.errors.DatabaseError as err:
-        # Check if the error is due to duplicate employee username
+       
         if err.errno == 1644:
             print("Employee username already exists. Please choose a different username.")
-        # Check if the error is due to duplicate employee ID
+       
         elif "Duplicate employee ID" in str(err):
             print("Duplicate employee ID. Please contact the administrator.")
             #print("Duplicate employee ID. Please contact the administrator.")
         else:
-            # For other database errors, print the error message
+           
             print("Error:", err)
 
-# Login functions for users and employees
+#Login functions for users and employees
 def login_user(cursor):
     global logged_in_user
     username = input("Username: ")
@@ -150,7 +150,7 @@ def login_employee(cursor):
         print("Invalid credentials.")
 
 
-# Logout functions for users and employees
+#Logout functions for users and employees
 def logout_user():
     global logged_in_user
     print(f"Goodbye, {logged_in_user}!")
@@ -163,7 +163,7 @@ def logout_employee():
 
 
 
-# Function to display Privacy Policies
+#Function to display Privacy Policies
 def privacy_policies():
     print("╔═════════════════════════════════════════╗")
     print("║             Privacy Policies            ║")
@@ -193,7 +193,7 @@ def about_us():
     print("\n")
 
 
-# Function to display Stories
+#Function to display Stories
 def stories():
     print("╔══════════════════════════════════════════════════════════════════════════════════════╗")
     print("║                                 Stories About the Website                            ║")
@@ -204,7 +204,7 @@ def stories():
     print("╚══════════════════════════════════════════════════════════════════════════════════════╝")
     print("\n")
 
-# Information menu
+#Information menu
 def informational_menu():
     while True:
         print("\nInformation Menu")
@@ -230,7 +230,7 @@ def informational_menu():
 
 
 
-# Main menu that handles different states based on login
+#Main menu that handles different states based on login
 def main_menu(cursor, con):
     #indexing(cursor)
     while True:
