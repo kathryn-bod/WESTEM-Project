@@ -15,6 +15,7 @@ def connect_to_database():
 
 counter = 0
 
+#function to generate ids for documents
 def generate_document_id():
     global counter
     # Get current timestamp
@@ -26,7 +27,7 @@ def generate_document_id():
     document_id = (timestamp % (2**31)) * 1000 + counter
     return document_id
 
-
+#function to edit profiles
 def edit_profile(username):
     try:
         con = connect_to_database()
@@ -91,17 +92,18 @@ def edit_profile(username):
         print("Error:", err)
 
 
+#function to display documents
 def see_documents(username):
  
         con = connect_to_database()
         cursor = con.cursor()
 
-        # Retrieve user_id based on username
+        #SQL Query
         query = "SELECT username FROM users WHERE username = %s"
         cursor.execute(query, (username,))
         user_id = cursor.fetchone()[0]
 
-        # SQL query to retrieve user's documents based on user_id
+        #SQL query to retrieve user's documents based on user_id
         query = "SELECT * FROM documents WHERE user_id = %s"
         cursor.execute(query, (user_id,))
         documents = cursor.fetchall()
@@ -119,27 +121,27 @@ def see_documents(username):
             print("No documents found.")
         con.close()
 
-
+#function to add documents to database
 def upload_document(username, title, doc_type, filename, update_time=None):
 
         con = connect_to_database()
         cursor = con.cursor()
 
-        # Retrieve user_id based on username
+        #retrieve user_id based on username
         query = "SELECT username FROM users WHERE username = %s"
         #print("Executing query:", query)  # Debugging output
         cursor.execute(query, (username,))
         user_id = cursor.fetchone()[0]
 
-        # Generate a unique document ID
+        #generate a unique document ID
         document_id = generate_document_id()
         #print("Generated document ID:", document_id)  # Debugging output
 
-        # Use current timestamp if document timestamp is not provided
+        #use current timestamp if document timestamp is not provided
         if update_time is None:
             update_time = datetime.now()
 
-        # SQL query to upload new document
+        #SQL query to upload new document
         insert_query = "INSERT INTO documents (document_id, title, type, filename, update_time, user_id) VALUES (%s, %s, %s, %s, %s, %s)"
         #print("Executing query:", insert_query)  # Debugging output
         document_data = (document_id, title, doc_type, filename, update_time, user_id)
@@ -152,6 +154,7 @@ def upload_document(username, title, doc_type, filename, update_time=None):
 
         con.close()
 
+#menu for profile options
 def profile_options(username):
     while True:
         title = "Profile Options"
@@ -192,14 +195,16 @@ def profile_options(username):
 
 
 
-
-
+#project id generator
 def project_id(cursor):
     while True:
         project_id = random.randint(10000000, 99999999) 
         cursor.execute("SELECT * FROM projects WHERE project_id = %s", (project_id,))
         if not cursor.fetchone():  
             return project_id
+        
+
+#function to show types for projects
 def type_for_proj():
         print("Select what type of project you would like to work on from the following list:")
         print("[D] Data Science")
@@ -222,6 +227,8 @@ def type_for_proj():
            print("Invalid Project Type. You Must Select From the List Above.")
         return project_type
 
+
+#menu for project sign-up
 def project_interest(username):
         user_id=username
         emp_id= 1
@@ -261,13 +268,13 @@ def project_interest(username):
         con.close()
         return
 
-
+#check status for mentor
 def project_status(username):
     try:
         con = connect_to_database()
         cursor = con.cursor()
 
-        # Query the projects table to fetch the project ID based on the username
+        #the projects table to fetch the project ID based on the username
         query_fetch_project_id = "SELECT project_id FROM projects WHERE user_id = %s"
         cursor.execute(query_fetch_project_id, (username,))
         project_id = cursor.fetchone()
@@ -278,7 +285,7 @@ def project_status(username):
             con = connect_to_database()
             cursor = con.cursor()
 
-            # Query the mentorship table to check if a mentor is assigned to the project
+            #the mentorship table to check if a mentor is assigned to the project
             query_check_mentorship = "SELECT employee_id FROM mentorship WHERE project_id = %s"
             cursor.execute(query_check_mentorship, (project_id,))
             mentor_id = cursor.fetchone()
@@ -288,14 +295,14 @@ def project_status(username):
 
                 con = connect_to_database()
                 cursor = con.cursor()
-                # Query the resources table to get the name of the mentor
+                #the resources table to get the name of the mentor
                 query_mentor_name = "SELECT name FROM resources WHERE employee_id = %s"
                 cursor.execute(query_mentor_name, (mentor_id,))
                 mentor_name = cursor.fetchone()[0]
 
                 con = connect_to_database()
                 cursor = con.cursor()
-                # Query the employee table to get additional information about the mentor
+                #the employee table to get additional information about the mentor
                 query_mentor_info = "SELECT first_name, last_name, email, experience FROM employee WHERE employer_id = %s"
                 cursor.execute(query_mentor_info, (mentor_id,))
                 mentor_info = cursor.fetchone()
@@ -320,7 +327,7 @@ def project_status(username):
         else:
             print("No project found for the provided username.")
 
-        # Consume any unread results
+       
         cursor.fetchall()
 
         con.close()
@@ -330,7 +337,7 @@ def project_status(username):
         print("Error:", ex)
 
 
-
+#function to see projects
 def view_proj(username):
     title = "Current Projects"
     box_width = 100
@@ -341,17 +348,17 @@ def view_proj(username):
         con = connect_to_database()
         cursor = con.cursor()
 
-        # SQL query to retrieve current profile information
+        #SQL query to retrieve current profile information
         query = "SELECT * FROM projects WHERE user_id = %s"
         cursor.execute(query, (username,))
-        curr_projects = cursor.fetchall()  # Fetch all rows instead of just one
+        curr_projects = cursor.fetchall()  #Fetch all rows instead of just one
 
         if curr_projects:
-            for project in curr_projects:  # Iterate over each project row
+            for project in curr_projects:  
                 print("Current Project Information:")
-                print("1. Project Title:", project[3])  # Adjust index accordingly
-                print("2. Type:", project[2])  # Adjust index accordingly
-                print("3. Budget:", project[1])  # Adjust index accordingly
+                print("1. Project Title:", project[3])  
+                print("2. Type:", project[2]) 
+                print("3. Budget:", project[1])  
                 print("\n")
 
         con.close()
@@ -362,7 +369,7 @@ def view_proj(username):
         print("Error:", ex)
 
        
-
+#sign up for mentor
 def mentorship_signup(username):
     while True:
         title = "Mentorship"
@@ -409,6 +416,8 @@ def mentorship_signup(username):
         else:
             print("Invalid choice. Please try again.")
 
+
+#function to see different workshops
 def view_workshops(username):
     try:
         con = connect_to_database()
@@ -454,7 +463,7 @@ def view_workshops(username):
 
 
 
-
+#function to generate id for resource
 def resource_id(cursor):
     while True:
         resource_id = random.randint(10000000, 99999999) 
@@ -462,6 +471,8 @@ def resource_id(cursor):
         if not cursor.fetchone():  
             return resource_id
         
+
+#applying to see resume review        
 def apply_resume_review(username, filename):
     print("Resume Review")
     try:
@@ -516,6 +527,8 @@ def apply_resume_review(username, filename):
     except Exception as ex:
         print("An error occurred:", ex)
 
+
+#function for resume menu
 def resume_menu(username):
     filename = "resume"
     while True:
@@ -552,6 +565,7 @@ def resume_menu(username):
             print("Invalid choice. Please try again.")
 
 
+#main menu for user
 def user_menu(username):
     while True:
         option = "[P] Profile"
@@ -590,6 +604,8 @@ def user_menu(username):
             print("Invalid input.")
             return True
 
+
+#menu for user dashboard
 def user_dashboard(username):
     title = "WESTEM"
     title2 = "USER DASHBOARD"
