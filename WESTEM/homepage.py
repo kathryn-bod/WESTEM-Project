@@ -11,21 +11,21 @@ def home_page():
     system would be compromised of a website.
     """
 
-    # Define box width
+    #box width
     box_width = 100
 
-    # Print title box
+    #title box
     print("╔" + "═" * (box_width - 2) + "╗")
     print("║" + title.center(box_width - 2) + "║")
     print("╚" + "═" * (box_width - 2) + "╝")
     print()
 
-    # Print about us box
+    #about us box
     lines = about_us.strip().split("\n")
     for line in lines:
         print("│" + line.strip().center(box_width - 2) + "│")
 
-    # Print bottom border
+    #bottom border
     print("└" + "─" * (box_width - 2) + "┘")
 
 
