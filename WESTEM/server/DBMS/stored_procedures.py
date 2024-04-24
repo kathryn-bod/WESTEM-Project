@@ -1,6 +1,5 @@
 import mysql.connector
 
-# Function to establish database connection
 def connect_to_database():
     return mysql.connector.connect(
         host='localhost',
@@ -9,14 +8,14 @@ def connect_to_database():
         database='westem'
     )
 
-# Function to create triggers
+#create triggers
 def create_triggers():
     try:
-        # Establish database connection
+       
         con = connect_to_database()
         cursor = con.cursor()
 
-        # Trigger to Prevent Duplicate Usernames for Users
+        
         cursor.execute("""
             CREATE TRIGGER check_duplicate_username_users
             BEFORE INSERT ON users
@@ -32,7 +31,7 @@ def create_triggers():
             END
         """)
 
-        # Trigger to Prevent Duplicate Usernames for Employees
+      
         cursor.execute("""
             CREATE TRIGGER check_duplicate_employee_username
             BEFORE INSERT ON employee
@@ -48,7 +47,7 @@ def create_triggers():
             END
         """)
 
-        # Trigger to Prevent Duplicate Employee IDs for Employees
+       
         cursor.execute("""
             CREATE TRIGGER check_duplicate_employee_id
             BEFORE INSERT ON employee
@@ -70,11 +69,11 @@ def create_triggers():
         print("Error creating triggers:", err)
 
     finally:
-        # Close cursor and connection
+
         if 'cursor' in locals():
             cursor.close()
         if 'con' in locals() and con.is_connected():
             con.close()
 
-# Execute the function to create triggers
+
 create_triggers()

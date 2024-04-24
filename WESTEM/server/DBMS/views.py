@@ -8,6 +8,7 @@ def connect_to_database():
         database="westem"
     )
 
+#create views for database
 def create_views():
     views = [
         """
@@ -28,9 +29,9 @@ def create_views():
     try:
         for view in views:
             cursor.execute(view)
-            # Split the view string by " AS "
+          
             view_parts = view.split(" AS ")
-            # Check if the split operation produced at least two parts
+            
             if len(view_parts) >= 2:
                 print("View created successfully:", view_parts[1].split("\n")[0])
             else:

@@ -211,7 +211,7 @@ def show_current_projects(employee_id):
         cursor.execute(user_id_query, (employee_id,))
         user_id = cursor.fetchone()[0]
 
-        # SQL query to retrieve current projects for the employee
+        #SQL query to retrieve current projects for the employee
         query = """
                 SELECT project_id, project_title, project_type, budget
                 FROM current_projects_view
@@ -366,10 +366,10 @@ def dashboard_employee(employee_id):
     title = "WESTEM"
     title2 = "EMPLOYEE DASHBOARD"
 
-    # Define box width
+    #Define box width
     box_width = 100
 
-    # Print title box
+    #Print title box
     print("\033c\033[3J")
     print("╔" + "═" * (box_width - 2) + "╗")
     print("║" + title.center(box_width - 2) + "║")
