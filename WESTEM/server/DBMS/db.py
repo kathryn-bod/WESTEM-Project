@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 """
 
-# Execute the SQL statement to create the table
+#SQL statement to create the table
 cursor.execute(create_table_users)
 
 
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS employee (
 """
 
 
-# Execute the SQL statement to create the table
+#SQL statement to create the table
 cursor.execute(create_table_employee)
 
 create_project_query = """
@@ -76,10 +76,10 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 """
 
-# Execute the SQL statement to create the project table
+#SQL statement to create the project table
 cursor.execute(create_project_query)
 
-# Define SQL statement to create the mentorship table
+# SQL statement to create the mentorship table
 create_mentorship_table_query = """
 CREATE TABLE IF NOT EXISTS mentorship (
     user_id VARCHAR(50),
@@ -92,11 +92,11 @@ CREATE TABLE IF NOT EXISTS mentorship (
 );
 """
 
-# Execute the SQL statement to create the mentorship table
+#SQL statement to create the mentorship table
 cursor.execute(create_mentorship_table_query)
 
 
-# Define SQL statement to create the resources table (superclass)
+#SQL statement to create the resources table (superclass)
 create_resources_query = """
 CREATE TABLE IF NOT EXISTS resources (
     resource_id INTEGER PRIMARY KEY,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS resources (
 );
 """
 
-# Define SQL statement to create the workshops table (subclass)
+#SQL statement to create the workshops table (subclass)
 create_workshops_query = """
 CREATE TABLE IF NOT EXISTS workshops (
     resource_id INTEGER PRIMARY KEY,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS workshops (
 );
 """
 
-# Define SQL statement to create the resume_review table (subclass)
+#SQL statement to create the resume_review table (subclass)
 create_resume_review_query = """
 CREATE TABLE IF NOT EXISTS resume_review (
     resource_id INTEGER PRIMARY KEY,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS resume_review (
 );
 """
 
-# Define SQL statement to create the mentorship_program table (subclass)
+#SQL statement to create the mentorship_program table (subclass)
 create_mentorship_program_query = """
 CREATE TABLE IF NOT EXISTS mentorship_program (
     resource_id INTEGER PRIMARY KEY,
@@ -133,14 +133,14 @@ CREATE TABLE IF NOT EXISTS mentorship_program (
 );
 """
 
-# Execute the SQL statements to create the tables
+#SQL statements to create the tables
 cursor.execute(create_resources_query)
 cursor.execute(create_workshops_query)
 cursor.execute(create_resume_review_query)
 cursor.execute(create_mentorship_program_query)
 
 
-# Define SQL statement to create the documents table
+#SQL statement to create the documents table
 create_documents_table_query = """
 CREATE TABLE IF NOT EXISTS documents (
     document_id INTEGER PRIMARY KEY NOT NULL,
@@ -153,11 +153,11 @@ CREATE TABLE IF NOT EXISTS documents (
 );
 """
 
-# Execute the SQL statement to create the documents table
+#SQL statement to create the documents table
 cursor.execute(create_documents_table_query)
 
 
-# Define SQL statement to create the resource_application table
+#SQL statement to create the resource_application table
 create_resource_application_table_query = """
 CREATE TABLE IF NOT EXISTS resource_application (
     user_id VARCHAR(50),
@@ -170,6 +170,6 @@ CREATE TABLE IF NOT EXISTS resource_application (
 );
 """
 
-# Execute the SQL statement to create the resource_application table
+#SQL statement to create the resource_application table
 cursor.execute(create_resource_application_table_query)
 con.commit()
