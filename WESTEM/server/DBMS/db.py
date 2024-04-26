@@ -113,6 +113,8 @@ create_workshops_query = """
 CREATE TABLE IF NOT EXISTS workshops (
     resource_id INTEGER PRIMARY KEY,
     duration INTEGER,
+    about VARCHAR(1000),
+    workshop_name VARCHAR(255),
     FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
 );
 """
@@ -126,26 +128,16 @@ CREATE TABLE IF NOT EXISTS resume_review (
 );
 """
 
-#SQL statement to create the mentorship_program table (subclass)
-create_mentorship_program_query = """
-CREATE TABLE IF NOT EXISTS mentorship_program (
-    resource_id INTEGER PRIMARY KEY,
-    mentor VARCHAR(100),
-    FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
-);
-"""
 
 #SQL statements to create the tables
 cursor.execute(create_resources_query)
 cursor.execute(create_workshops_query)
 cursor.execute(create_resume_review_query)
-cursor.execute(create_mentorship_program_query)
-
 
 #SQL statement to create the documents table
 create_documents_table_query = """
 CREATE TABLE IF NOT EXISTS documents (
-    document_id INTEGER PRIMARY KEY NOT NULL,
+    document_id BIGINT PRIMARY KEY NOT NULL,
     title VARCHAR(100),
     type VARCHAR(50),
     filename VARCHAR(100),
@@ -164,7 +156,7 @@ create_resource_application_table_query = """
 CREATE TABLE IF NOT EXISTS resource_application (
     user_id VARCHAR(50),
     resource_id INTEGER,
-    document_id INTEGER,
+    document_id BIGINT,
     FOREIGN KEY (user_id) REFERENCES users(username),
     FOREIGN KEY (resource_id) REFERENCES resources(resource_id),
     FOREIGN KEY (document_id) REFERENCES documents(document_id),
@@ -184,6 +176,8 @@ con.commit()
 
 """ 
 
+The queries below have already been added to the queries above:
+
 ALTER TABLE westem.documents MODIFY COLUMN document_id BIGINT;
 ALTER TABLE westem.resource_application MODIFY COLUMN document_id BIGINT;
 
@@ -193,6 +187,8 @@ ADD COLUMN about VARCHAR(1000),
 ADD COLUMN workshop_name VARCHAR(255);
 
 
+
+The only queries to run are the INDEX queries:
 
 -- Queries for Index 
 
