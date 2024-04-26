@@ -1,4 +1,6 @@
 import mysql.connector
+
+
 import sqlite3
 
 
@@ -173,3 +175,43 @@ CREATE TABLE IF NOT EXISTS resource_application (
 #SQL statement to create the resource_application table
 cursor.execute(create_resource_application_table_query)
 con.commit()
+
+
+
+# Alterations to DATABASE done in MySQL Workbench:
+
+
+
+""" 
+
+ALTER TABLE westem.documents MODIFY COLUMN document_id BIGINT;
+ALTER TABLE westem.resource_application MODIFY COLUMN document_id BIGINT;
+
+
+ALTER TABLE westem.workshops
+ADD COLUMN about VARCHAR(1000),
+ADD COLUMN workshop_name VARCHAR(255);
+
+
+
+-- Queries for Index 
+
+ 
+
+-- Index on username column in the users table 
+
+-- CREATE UNIQUE INDEX idx_username ON westem.users (username); 
+
+ 
+
+-- Index on username column in the employee table 
+
+CREATE UNIQUE INDEX idx_employee_username ON westem.employee (username); 
+
+ 
+
+-- Index on employer_id column in the employee table 
+
+CREATE INDEX idx_employer_id ON westem.employee (employer_id); 
+
+"""

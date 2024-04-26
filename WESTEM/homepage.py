@@ -1,3 +1,12 @@
+"""
+WESTEM - DB Final Project
+Authors: Areebah Khandaker, Kathryn Bodden, Luisa Navarrete
+Date: April 2024
+
+"""
+
+
+
 from server.login import log_in_main
 
 
