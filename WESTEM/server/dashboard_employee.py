@@ -1,5 +1,6 @@
 import mysql.connector
 import random
+from server.helper.id_generator import generate_unique_resource_id
 
 def connect_to_database():
     return mysql.connector.connect(
@@ -8,16 +9,6 @@ def connect_to_database():
         user='root',
         database="westem"
     )
-
-def generate_unique_resource_id(cursor):
-    while True:
-        resource_id = random.randint(100000, 999999)
-        cursor.execute("SELECT COUNT(*) FROM resources WHERE resource_id = %s", (resource_id,))
-        count = cursor.fetchone()[0]
-        if count == 0:
-            # Unique resource_id found
-            return resource_id
-
 
 def show_workshops():
     con = connect_to_database()
