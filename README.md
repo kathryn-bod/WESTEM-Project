@@ -1,13 +1,12 @@
 # DB-FInalProject
 
-
 Go into WESTEM directory
 Then, into the server folder and inside go into the DBMS directory
 
 From there run the files in this order:
 
 python db.py
-- for thse file there were some alterations made to the actual workbend with the SQL queries below. 
+- For these file there were some alterations made to the actual workbend with the SQL queries below. 
 - These chnages were already implemented to the db.py on the original CREAT TABLE statement.
 - The only queries to run on the workbend are INDEX queries. 
 
